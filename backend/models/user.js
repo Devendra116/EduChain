@@ -1,5 +1,4 @@
 const mongoose = require('mongoose')
-const ObjectId = mongoose.Types.ObjectId;
 
 const userSchema = mongoose.Schema({
     email: { type: String, required: [true, 'Please add an email'] },
