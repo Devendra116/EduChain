@@ -47,9 +47,9 @@ const getCourseDetail = async (req, res) => {
                 }
             })
         if (!courseData) return res.status(400).send({ message: "No course Found" });
-        return res.status(200).send({status:true, message: "Course Data", course: courseData });
+        return res.status(200).send({ status: true, message: "Course Data", course: courseData });
     } catch (error) {
-        return res.status(400).send({ status:false,message: `Error getting course: ${error.message}` });
+        return res.status(400).send({ status: false, message: `Error getting course: ${error.message}` });
 
     }
 
@@ -65,7 +65,7 @@ const createCourse = async (req, res) => {
         const { courseTitle, courseBrief, courseFee, language, timeRequired, tags, image } = req.body
 
         if (!courseTitle || !courseBrief || !courseFee || !language || !timeRequired || !tags || !image)
-            return res.status(400).send({status:false , message: "Please Send Complete Detail" });
+            return res.status(400).send({ status: false, message: "Please Send Complete Detail" });
 
         const newCourse = new Course({
             courseTitle,
@@ -84,15 +84,46 @@ const createCourse = async (req, res) => {
 
         })
         await newCourse.save()
-        return res.status(200).send({ status:true,message: "Course Created", courseData: newCourse });
+        return res.status(200).send({ status: true, message: "Course Created", courseData: newCourse });
     } catch (error) {
-        return res.status(400).send({ status:false,message: `Error getting course: ${error.message}` });
+        return res.status(400).send({ status: false, message: `Error creatig course: ${error.message}` });
 
     }
 
 
 }
 
+// @desc    Add modules to Course
+// @route   POST /course/addmodule
+// @access  Private
+const addModule = async (req, res) => {
+    try {
+        // const { courseTitle, courseBrief, courseFee, language, timeRequired, tags, image } = req.body
+
+        const { moduleTitle, moduleBrief, moduleFee, CourseId } = req.body
+
+        if (!moduleTitle, !moduleBrief, !moduleFee, !CourseId)
+            return res.status(400).send({ status: false, message: "Please Send Complete Detail" });
+        const course = await Course.findById(CourseId)
+        if (!course) return res.status(400).send({ status: false, message: "Course Not found" });
+        // if(course.instructorId!=)
+        if (course.instructorId != req.userId) return res.status(400).send({ status: false, message: "You can't modify Course, No Write Access" });
+        console.log(course.instructorId);
+        console.log(req.userId);
+        const newModule = new CourseModule({
+            moduleTitle,
+            moduleBrief,
+            moduleFee,
+            moduleCourseId: CourseId
+        })
+        await newModule.save()
+        const updateCourse = await Course.findByIdAndUpdate(CourseId, { $push: { courseModules: newModule._id } })
+
+        return res.status(200).send({ status: true, message: "Module Added", courseData: updateCourse });
+    } catch (error) {
+        return res.status(400).send({ status: false, message: `Error Adding Module: ${error.message}` });
+    }
+}
 
 
 const searchCourses = async (req, res) => {
@@ -211,4 +242,4 @@ const coursePaymentApproval = async (req, res) => {
 
 }
 
-module.exports = { getCourses, searchCourses, getCourseDetail, createCourse, coursePaymentApproval }
+module.exports = { getCourses, addModule, searchCourses, getCourseDetail, createCourse, coursePaymentApproval }
