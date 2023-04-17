@@ -67,11 +67,11 @@ const registerNgo = async (req, res) => {
 };
 
 // @desc    Get NGO details
-// @route   GET /ngo/:ngoId
+// @route   GET /ngo/
 // @access  Private
 const getNgoDetail = async (req, res) => {
     try {
-        const ngo = await NgoModel.findById(req.params.ngoId)
+        const ngo = await NgoModel.findById(req.adminId)
         res.status(200).json(ngo)
     } catch (error) {
         res.status(400).send({ status: false, message: `Error getting NGO detail ${error}` });
