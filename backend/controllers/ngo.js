@@ -37,7 +37,7 @@ const ngoAdminLogin = async (req, res) => {
 // @access  Public
 const registerNgo = async (req, res) => {
     try {
-        const { email, password, name, phone, location } = req.body
+        const { email, password, name, phone, location} = req.body
 
         let ngo = await NgoModel.findOne({ email });
         if (ngo) return res.status(400).send({ message: 'NGO already exists for given Email' });
@@ -50,7 +50,8 @@ const registerNgo = async (req, res) => {
             location,
             ngo_user_id: [],
             courseEnrolled: [],
-            joinedUserCount: 0
+            joinedUserCount: 0,
+            maxUserCount:50
         });
 
         // Hash the password
@@ -97,14 +98,15 @@ const generateToken = async (req, res) => {
         const { ngoId } = req.body;
         const uuidToken = v4();
         const ngo = await NgoModel.findById(ngoId)
-        console.log(ngo)
-        console.log(ngo.secretCode)
+        if (!ngo) {
+            return res.status(400).json({ "message": "NGO does not exist" })
+        }
 
         if (ngo.secretCode) {
             console.log("ngo.secretCode", ngo.secretCode)
             return res.status(400).json({ "message": "Token Already Exist" })
         }
-        if (0 < req.body.maxUserCount <= 50) {
+        if (0 > ngo.maxUserCount > 50) {
             return res.status(400).json({ "message": "maxUserCount should be greater than 0 and less than 50" })
         }
         const query = { _id: req.body.ngoId };
