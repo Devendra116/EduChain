@@ -5,7 +5,7 @@ const courseChapterSchema = mongoose.Schema({
     chapterName: { type: String, required: [true, 'Please add an chapterName'] },
     chapterBrief: { type: String, required: [true, 'Please add an chapterBrief'] },
     chapterVideoUrl: { type: String, required: [true, 'Please add an chapterVideoUrl'] },
-    timeRequired: { type: Number, required: [true, 'Please add an timeRequired'] },
+    // timeRequired: { type: Number, required: [true, 'Please add an timeRequired'] },
 }, {
     timestamps: true
 })
