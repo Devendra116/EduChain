@@ -3,6 +3,19 @@ const jwt = require('jsonwebtoken')
 const User = require('../models/user')
 
 
+// @desc    Fetch User Profile Info
+// @route   GET /user/profile
+// @access  Public
+const userProfile = async (req, res) => {
+    try {
+        const user = await User.findById(req.userId);
+        if (!user) return res.status(400).send({ status: false, message: 'No user found' });
+        return res.status(200).send({ status: true, message: 'User Data', user });
+    } catch (error) {
+        return res.status(400).send({ status: false, message: `Error Logging In: ${error.message}` });
+    }
+};
+
 // @desc    Authenticate a user
 // @route   POST /user/login
 // @access  Public
@@ -107,4 +120,4 @@ const deleteUser = async (req, res) => {
     }
 };
 
-module.exports = { userLogin, registerUser, updateUser, deleteUser }
+module.exports = { userProfile, userLogin, registerUser, updateUser, deleteUser }
