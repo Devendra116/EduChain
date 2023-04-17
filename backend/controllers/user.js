@@ -11,11 +11,11 @@ const userLogin = async (req, res) => {
         const { email, password } = req.body;
         // Find the user
         const user = await User.findOne({ email });
-        if (!user) return res.status(400).send({ message: 'Invalid credentials' });
+        if (!user) return res.status(400).send({ status: false, message: 'Invalid credentials' });
 
         // Compare the passwords
         const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) return res.status(400).send({ message: 'Invalid credentials' });
+        if (!isMatch) return res.status(400).send({ status: false, message: 'Invalid credentials' });
 
         // Generate a token
         const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
@@ -23,9 +23,9 @@ const userLogin = async (req, res) => {
         });
         console.log(user._id)
         // Return the token
-        return res.status(200).send({ message: 'User Log In Successfull', token });
+        return res.status(200).send({ status: true, message: 'User Log In Successfull', token });
     } catch (error) {
-        return res.status(400).send({ message: `Error Logging In: ${error.message}` });
+        return res.status(400).send({ status: false, message: `Error Logging In: ${error.message}` });
     }
 };
 
@@ -37,7 +37,7 @@ const registerUser = async (req, res) => {
         const { email, password } = req.body;
         // Check if the email already exists
         let user = await User.findOne({ email });
-        if (user) return res.status(400).send({ message: 'Email already exists' });
+        if (user) return res.status(400).send({ status: false, message: 'Email already exists' });
 
         // Hash the password
         const salt = await bcrypt.genSalt(10);
@@ -52,9 +52,9 @@ const registerUser = async (req, res) => {
         // Save the new user
         await newUser.save();
 
-        return res.status(201).send({ message: 'User created successfully' });
+        return res.status(201).send({ status: true, message: 'User created successfully' });
     } catch (error) {
-        return res.status(400).send({ message: `Error creating user ${error.message}` });
+        return res.status(400).send({ status: false, message: `Error creating user ${error.message}` });
     }
 };
 
@@ -66,7 +66,7 @@ const updateUser = async (req, res) => {
     try {
         // Find the user
         const user = await User.findById(req.params.userId);
-        if (!user) return res.status(404).send({ message: 'User not found' });
+        if (!user) return res.status(404).send({ status: false, message: 'User not found' });
 
         // Update the user information
         if (email) user.email = email;
@@ -88,9 +88,9 @@ const updateUser = async (req, res) => {
         // Save the updates
         await user.save();
 
-        return res.status(200).send({ message: 'User Updated Successfully' });
+        return res.status(200).send({ status: true, message: 'User Updated Successfully' });
     } catch (error) {
-        return res.status(400).send({ message: `Error Updating User: ${error.message}` });
+        return res.status(400).send({ status: false, message: `Error Updating User: ${error.message}` });
     }
 };
 
@@ -101,9 +101,9 @@ const deleteUser = async (req, res) => {
     try {
         const deletedUser = await User.findByIdAndDelete(req.params.userId)
         if (!deletedUser) return res.status(400).send({ message: 'Error deleting, User Not Found' });
-        return res.status(200).send({ message: 'User deleted successfully' });
+        return res.status(200).send({ status: true, message: 'User deleted successfully' });
     } catch (error) {
-        return res.status(400).send({ message: `Error deleting User${error.message} ` });
+        return res.status(400).send({ status: false, message: `Error deleting User${error.message} ` });
     }
 };
 

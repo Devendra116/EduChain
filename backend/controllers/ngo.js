@@ -14,11 +14,11 @@ const ngoAdminLogin = async (req, res) => {
         const { email, password } = req.body
         // Find the NGO admin 
         const ngoAdmin = await NgoModel.findOne({ email });
-        if (!ngoAdmin) return res.status(400).send({ message: 'Invalid credentials' });
+        if (!ngoAdmin) return res.status(400).send({ status: false, message: 'Invalid credentials' });
 
         // Compare the passwords
         const isMatch = await bcrypt.compare(password, ngoAdmin.password);
-        if (!isMatch) return res.status(400).send({ message: 'Invalid credentials' });
+        if (!isMatch) return res.status(400).send({ status: false, message: 'Invalid credentials' });
 
         // Generate a token
         const token = jwt.sign({ adminId: ngoAdmin._id }, process.env.JWT_SECRET, {
@@ -26,9 +26,9 @@ const ngoAdminLogin = async (req, res) => {
         });
 
         // Return the token
-        return res.status(200).send({ message: "Admin Log In Successfull", token });
+        return res.status(200).send({ status: true, message: "Admin Log In Successfull", token });
     } catch (error) {
-        return res.status(400).send({ message: `Error logging in ${error} ` });
+        return res.status(400).send({ status: false, message: `Error logging in ${error} ` });
     }
 };
 
@@ -37,10 +37,10 @@ const ngoAdminLogin = async (req, res) => {
 // @access  Public
 const registerNgo = async (req, res) => {
     try {
-        const { email, password, name, phone, location} = req.body
+        const { email, password, name, phone, location } = req.body
 
         let ngo = await NgoModel.findOne({ email });
-        if (ngo) return res.status(400).send({ message: 'NGO already exists for given Email' });
+        if (ngo) return res.status(400).send({ status: false, message: 'NGO already exists for given Email' });
 
         // Create the NGO
         const newNgo = new NgoModel({
@@ -51,7 +51,7 @@ const registerNgo = async (req, res) => {
             ngo_user_id: [],
             courseEnrolled: [],
             joinedUserCount: 0,
-            maxUserCount:50
+            maxUserCount: 50
         });
 
         // Hash the password
@@ -60,9 +60,9 @@ const registerNgo = async (req, res) => {
 
         await newNgo.save();
 
-        return res.status(201).send({ message: 'NGO created successfully' });
+        return res.status(201).send({ status: true, message: 'NGO created successfully' });
     } catch (error) {
-        return res.status(400).send({ message: `Error creating NGO ${error}` });
+        return res.status(400).send({ status: false, message: `Error creating NGO ${error}` });
     }
 };
 
@@ -74,7 +74,7 @@ const getNgoDetail = async (req, res) => {
         const ngo = await NgoModel.findById(req.params.ngoId)
         res.status(200).json(ngo)
     } catch (error) {
-        res.status(400).send({ message: `Error getting NGO detail ${error}` });
+        res.status(400).send({ status: false, message: `Error getting NGO detail ${error}` });
     }
 }
 
@@ -86,7 +86,7 @@ const getNgoDetails = async (req, res) => {
         const ngo = await NgoModel.find({})
         return res.status(200).json(ngo)
     } catch (error) {
-        return res.status(400).send({ message: `Error getting NGOs detail ${error}` });
+        return res.status(400).send({ status: false, message: `Error getting NGOs detail ${error}` });
     }
 }
 
@@ -99,15 +99,15 @@ const generateToken = async (req, res) => {
         const uuidToken = v4();
         const ngo = await NgoModel.findById(ngoId)
         if (!ngo) {
-            return res.status(400).json({ "message": "NGO does not exist" })
+            return res.status(400).json({ status: false, "message": "NGO does not exist" })
         }
 
         if (ngo.secretCode) {
             console.log("ngo.secretCode", ngo.secretCode)
-            return res.status(400).json({ "message": "Token Already Exist" })
+            return res.status(400).json({ status: false, "message": "Token Already Exist" })
         }
         if (0 > ngo.maxUserCount > 50) {
-            return res.status(400).json({ "message": "maxUserCount should be greater than 0 and less than 50" })
+            return res.status(400).json({ status: false, "message": "maxUserCount should be greater than 0 and less than 50" })
         }
         const query = { _id: req.body.ngoId };
         const update = {
@@ -118,9 +118,9 @@ const generateToken = async (req, res) => {
         }
         await NgoModel.findOneAndUpdate(query, update)
 
-        res.status(200).json({ "message": `Secret code generated `, "code": uuidToken })
+        res.status(200).json({ status: true, "message": `Secret code generated `, "code": uuidToken })
     } catch (error) {
-        res.status(400).send({ message: `Error getting NGO detail ${error.message}` });
+        res.status(400).send({ status: false, message: `Error getting NGO detail ${error.message}` });
     }
 }
 
@@ -134,13 +134,13 @@ const registerNgoUser = async (req, res) => {
         const { email, secretCode, password } = req.body;
 
         let user = await UserModel.findOne({ email });
-        if (user) return res.status(400).send({ message: 'User already exists for given Email' });
+        if (user) return res.status(400).send({ status: false, message: 'User already exists for given Email' });
 
-        if (!secretCode) return res.status(400).send({ message: 'Enter the Secret code to join as NGO associate User' });
+        if (!secretCode) return res.status(400).send({ status: false, message: 'Enter the Secret code to join as NGO associate User' });
 
         const ngo = await NgoModel.findOne({ secretCode })
-        if (!ngo) return res.status(400).send({ message: "No NGO found" });
-        if (ngo.maxUserCount <= ngo.joinedUserCount) return res.status(400).send({ message: 'The Code has reached its Limit, Please Contact NGO admin' });
+        if (!ngo) return res.status(400).send({ status: false, message: "No NGO found" });
+        if (ngo.maxUserCount <= ngo.joinedUserCount) return res.status(400).send({ status: false, message: 'The Code has reached its Limit, Please Contact NGO admin' });
 
         const createNgoUser = new UserModel({
             email,
@@ -154,9 +154,9 @@ const registerNgoUser = async (req, res) => {
         await createNgoUser.save();
         await NgoModel.findOneAndUpdate({ ngo }, { $inc: { joinedUserCount: 1 }, $push: { ngoUsersId: createNgoUser._id } })
 
-        res.status(201).send({ message: 'User created successfully' });
+        res.status(201).send({ status: true, message: 'User created successfully' });
     } catch (error) {
-        res.status(400).send({ message: `Error creating User ${error}` });
+        res.status(400).send({ status: false, message: `Error creating User ${error}` });
     }
 };
 
@@ -170,7 +170,7 @@ const getNgoUsers = async (req, res) => {
         const ngoUsers = await NgoModel.findOne({ ngoId }).populate("ngoUsersId")
         res.status(200).json(ngoUsers)
     } catch (error) {
-        res.status(400).send({ message: `Error getting NGO Users ${error}` });
+        res.status(400).send({ status: false, message: `Error getting NGO Users ${error}` });
     }
 }
 
