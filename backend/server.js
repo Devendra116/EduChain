@@ -10,6 +10,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 app.use('/user', require('./routes/user'))
+app.use('/ngo', require('./routes/ngo'))
 
 
 app.listen(process.env.PORT, () =>
