@@ -3,7 +3,7 @@ const ObjectId = mongoose.Types.ObjectId;
 
 const ModuleSchema = mongoose.Schema({
     moduleTitle: { type: String, required: [true, 'Please add an moduleTitle'] },
-    moduleBrief: { type: Number, required: [true, 'Please add an moduleBrief'] },
+    moduleBrief: { type: String, required: [true, 'Please add an moduleBrief'] },
     moduleFee: { type: Number },
     moduleCourseId: { type: mongoose.Types.ObjectId, ref: 'Course' },
     chapterIds: [{ type: mongoose.Types.ObjectId, ref: 'CourseChapter' }],

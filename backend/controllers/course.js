@@ -47,9 +47,9 @@ const getCourseDetail = async (req, res) => {
                 }
             })
         if (!courseData) return res.status(400).send({ message: "No course Found" });
-        return res.status(200).send({ message: "Course Data", course: courseData });
+        return res.status(200).send({status:true, message: "Course Data", course: courseData });
     } catch (error) {
-        return res.status(400).send({ message: `Error getting course: ${error.message}` });
+        return res.status(400).send({ status:false,message: `Error getting course: ${error.message}` });
 
     }
 
@@ -57,7 +57,7 @@ const getCourseDetail = async (req, res) => {
 }
 
 // @desc    Get Particular course detail
-// @route   GET /course/create
+// @route   POST /course/create
 // @access  Private
 const createCourse = async (req, res) => {
     try {
@@ -65,7 +65,7 @@ const createCourse = async (req, res) => {
         const { courseTitle, courseBrief, courseFee, language, timeRequired, tags, image } = req.body
 
         if (!courseTitle || !courseBrief || !courseFee || !language || !timeRequired || !tags || !image)
-            return res.status(200).send({ message: "Please Send Complete Detail" });
+            return res.status(400).send({status:false , message: "Please Send Complete Detail" });
 
         const newCourse = new Course({
             courseTitle,
@@ -74,24 +74,25 @@ const createCourse = async (req, res) => {
             language,
             timeRequired,
             tags,
-            rating:0,
+            rating: 0,
             image,
-            instructorId:req.userId,
-            courseModules:[],
-            courseAssessmentIds:[],
-            courseCompleted:false,
-            courseApproved:false
+            instructorId: req.userId,
+            courseModules: [],
+            courseAssessmentIds: [],
+            courseCompleted: false,
+            courseApproved: false
 
         })
         await newCourse.save()
-        return res.status(200).send({ message: "Course Created", courseData: newCourse });
+        return res.status(200).send({ status:true,message: "Course Created", courseData: newCourse });
     } catch (error) {
-        return res.status(400).send({ message: `Error getting course: ${error.message}` });
+        return res.status(400).send({ status:false,message: `Error getting course: ${error.message}` });
 
     }
 
 
 }
+
 
 
 const searchCourses = async (req, res) => {
