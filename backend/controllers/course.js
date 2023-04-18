@@ -27,7 +27,7 @@ const getCourses = async (req, res) => {
         const courses = await Course.find()
         return res.status(200).json(courses)
     } catch (error) {
-        return res.status(400).send({ message: `Error getting courses ${error}` });
+        return res.status(400).send({ status: false, message: `Error getting courses ${error}` });
     }
 }
 
@@ -46,7 +46,7 @@ const getCourseDetail = async (req, res) => {
                     model: 'CourseChapter'
                 }
             })
-        if (!courseData) return res.status(400).send({ message: "No course Found" });
+        if (!courseData) return res.status(400).send({ status: false,message: "No course Found" });
         return res.status(200).send({ status: true, message: "Course Data", course: courseData });
     } catch (error) {
         return res.status(400).send({ status: false, message: `Error getting course: ${error.message}` });
@@ -66,7 +66,7 @@ const getModuleDetail = async (req, res) => {
             moduleCourseId: courseId,
             moduleNumber: moduleId
         })
-        if (!moduleData) return res.status(400).send({ message: "No Module Found" });
+        if (!moduleData) return res.status(400).send({status: false, message: "No Module Found" });
         return res.status(200).send({ status: true, message: "Module Data", module: moduleData });
     } catch (error) {
         return res.status(400).send({ status: false, message: `Error getting Module: ${error.message}` });
