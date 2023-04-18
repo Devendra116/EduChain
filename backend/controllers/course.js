@@ -57,11 +57,15 @@ const getCourseDetail = async (req, res) => {
 }
 
 // @desc    Get Particular module detail
-// @route   GET /course/module/:moduleId
+// @route   GET /course/:courseId/module/:moduleId
 // @access  Public
 const getModuleDetail = async (req, res) => {
     try {
-        const moduleData = await CourseModule.findById(req.params.moduleId)
+        const { courseId, moduleId } = req.params;
+        const moduleData = await CourseModule.find({
+            moduleCourseId: courseId,
+            moduleNumber: moduleId
+        })
         if (!moduleData) return res.status(400).send({ message: "No Module Found" });
         return res.status(200).send({ status: true, message: "Module Data", module: moduleData });
     } catch (error) {
@@ -70,15 +74,25 @@ const getModuleDetail = async (req, res) => {
 }
 
 // @desc    Get Particular module detail
-// @route   GET /course/chapter/:chapterId
+// @route   GET /course/:courseId/module/:moduleId/chapter/:chapterId
 // @access  Public
 const getChapterDetail = async (req, res) => {
     try {
-        const chapterData = await CourseChapter.findById(req.params.chapterId)
+        const { courseId, moduleId, chapterId } = req.params;
+
+        const moduleData = await CourseModule.findOne({
+            moduleCourseId: courseId,
+            moduleNumber: moduleId
+        }).populate("chapterIds")
+
+        if (!moduleData) return res.status(400).send({ message: "No Module Found" });
+        const chapterData = moduleData.chapterIds.find(
+            (chapter) => chapter.chapterSequence == chapterId
+        );
         if (!chapterData) return res.status(400).send({ message: "No Chapter Found" });
-        return res.status(200).send({ status: true, message: "Chapter Data", chapter: chapterData });
+        return res.status(200).send({ status: true, message: "Module Data", chapter: chapterData });
     } catch (error) {
-        return res.status(400).send({ status: false, message: `Error getting Chapter: ${error.message}` });
+        return res.status(400).send({ status: false, message: `Error getting Module: ${error.message}` });
     }
 }
 

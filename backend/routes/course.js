@@ -4,11 +4,13 @@ const { getCourses, addModule, getModuleDetail, getChapterDetail, createCourse, 
 const { userAuth } = require('../middleware/userAuth')
 
 router.get('/', getCourses)
+router.get('/:courseId/module/:moduleId/chapter/:chapterId', userAuth, getChapterDetail)
+router.get('/:courseId/module/:moduleId', userAuth, getModuleDetail)
+router.get('/:courseId', userAuth, getCourseDetail)
+
 router.post('/create', userAuth, createCourse)
 router.post('/addmodule', userAuth, addModule)
-router.get('/module/:moduleId', userAuth, getModuleDetail)
-router.get('/chapter/:chapterId', userAuth, getChapterDetail)
-router.get('/:courseId', userAuth, getCourseDetail)
-router.get('/approval', coursePaymentApproval)
+
+// router.get('/approval', coursePaymentApproval)
 
 module.exports = router
