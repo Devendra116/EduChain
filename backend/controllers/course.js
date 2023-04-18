@@ -87,10 +87,7 @@ const createCourse = async (req, res) => {
         return res.status(200).send({ status: true, message: "Course Created", courseData: newCourse });
     } catch (error) {
         return res.status(400).send({ status: false, message: `Error creatig course: ${error.message}` });
-
     }
-
-
 }
 
 // @desc    Add modules to Course
@@ -98,15 +95,12 @@ const createCourse = async (req, res) => {
 // @access  Private
 const addModule = async (req, res) => {
     try {
-        // const { courseTitle, courseBrief, courseFee, language, timeRequired, tags, image } = req.body
-
         const { moduleTitle, moduleBrief, moduleFee, CourseId } = req.body
 
         if (!moduleTitle, !moduleBrief, !moduleFee, !CourseId)
             return res.status(400).send({ status: false, message: "Please Send Complete Detail" });
         const course = await Course.findById(CourseId)
         if (!course) return res.status(400).send({ status: false, message: "Course Not found" });
-        // if(course.instructorId!=)
         if (course.instructorId != req.userId) return res.status(400).send({ status: false, message: "You can't modify Course, No Write Access" });
         console.log(course.instructorId);
         console.log(req.userId);
@@ -118,8 +112,8 @@ const addModule = async (req, res) => {
         })
         await newModule.save()
         const updateCourse = await Course.findByIdAndUpdate(CourseId, { $push: { courseModules: newModule._id } })
-
-        return res.status(200).send({ status: true, message: "Module Added", courseData: updateCourse });
+        const courseData= await Course.findById(CourseId).populate("courseModules")
+        return res.status(200).send({ status: true, message: "Module Added", courseData });
     } catch (error) {
         return res.status(400).send({ status: false, message: `Error Adding Module: ${error.message}` });
     }
