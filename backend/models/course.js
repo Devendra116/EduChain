@@ -5,6 +5,7 @@ const courseSchema = mongoose.Schema({
     courseTitle: { type: String, required: [true, 'Please add an courseTitle'] },
     courseBrief: { type: String, required: [true, 'Please add an courseBrief'] },
     courseFee: { type: Number },
+    noOfModules: { type: Number },
     language: { type: String },
     timeRequired: { type: String },
     tags: [{ type: String }],

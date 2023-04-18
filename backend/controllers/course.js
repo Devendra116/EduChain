@@ -56,21 +56,48 @@ const getCourseDetail = async (req, res) => {
 
 }
 
+// @desc    Get Particular module detail
+// @route   GET /course/module/:moduleId
+// @access  Public
+const getModuleDetail = async (req, res) => {
+    try {
+        const moduleData = await CourseModule.findById(req.params.moduleId)
+        if (!moduleData) return res.status(400).send({ message: "No Module Found" });
+        return res.status(200).send({ status: true, message: "Module Data", module: moduleData });
+    } catch (error) {
+        return res.status(400).send({ status: false, message: `Error getting Module: ${error.message}` });
+    }
+}
+
+// @desc    Get Particular module detail
+// @route   GET /course/chapter/:chapterId
+// @access  Public
+const getChapterDetail = async (req, res) => {
+    try {
+        const chapterData = await CourseChapter.findById(req.params.chapterId)
+        if (!chapterData) return res.status(400).send({ message: "No Chapter Found" });
+        return res.status(200).send({ status: true, message: "Chapter Data", chapter: chapterData });
+    } catch (error) {
+        return res.status(400).send({ status: false, message: `Error getting Chapter: ${error.message}` });
+    }
+}
+
 // @desc    Get Particular course detail
 // @route   POST /course/create
 // @access  Private
 const createCourse = async (req, res) => {
     try {
         // const { courseTitle, courseBrief, courseFee, language, timeRequired, tags, rating, image, instructorId, courseModules, courseAssessmentIds, courseCompleted, courseApproved, }= req.body
-        const { courseTitle, courseBrief, courseFee, language, timeRequired, tags, image } = req.body
+        const { courseTitle, courseBrief, courseFee, language, timeRequired, tags, image, noOfModules } = req.body
 
-        if (!courseTitle || !courseBrief || !courseFee || !language || !timeRequired || !tags || !image)
+        if (!courseTitle || !courseBrief || !courseFee || !language || !timeRequired || !tags || !image || !noOfModules)
             return res.status(400).send({ status: false, message: "Please Send Complete Detail" });
 
         const newCourse = new Course({
             courseTitle,
             courseBrief,
             courseFee,
+            noOfModules,
             language,
             timeRequired,
             tags,
@@ -95,9 +122,9 @@ const createCourse = async (req, res) => {
 // @access  Private
 const addModule = async (req, res) => {
     try {
-        const { moduleTitle, moduleBrief, moduleFee, CourseId } = req.body
+        const { moduleTitle, moduleBrief, moduleFee, CourseId, noOfChapters, moduleNumber } = req.body
 
-        if (!moduleTitle, !moduleBrief, !moduleFee, !CourseId)
+        if (!moduleTitle, !moduleBrief, !moduleFee, !CourseId, !noOfChapters, !moduleNumber)
             return res.status(400).send({ status: false, message: "Please Send Complete Detail" });
         const course = await Course.findById(CourseId)
         if (!course) return res.status(400).send({ status: false, message: "Course Not found" });
@@ -108,11 +135,13 @@ const addModule = async (req, res) => {
             moduleTitle,
             moduleBrief,
             moduleFee,
-            moduleCourseId: CourseId
+            moduleCourseId: CourseId,
+            noOfChapters,
+            moduleNumber
         })
         await newModule.save()
-        const updateCourse = await Course.findByIdAndUpdate(CourseId, { $push: { courseModules: newModule._id } })
-        const courseData= await Course.findById(CourseId).populate("courseModules")
+        await Course.findByIdAndUpdate(CourseId, { $push: { courseModules: newModule._id } })
+        const courseData = await Course.findById(CourseId).populate("courseModules")
         return res.status(200).send({ status: true, message: "Module Added", courseData });
     } catch (error) {
         return res.status(400).send({ status: false, message: `Error Adding Module: ${error.message}` });
@@ -236,4 +265,4 @@ const coursePaymentApproval = async (req, res) => {
 
 }
 
-module.exports = { getCourses, addModule, searchCourses, getCourseDetail, createCourse, coursePaymentApproval }
+module.exports = { getCourses, getModuleDetail, getChapterDetail, addModule, searchCourses, getCourseDetail, createCourse, coursePaymentApproval }
