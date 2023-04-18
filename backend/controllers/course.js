@@ -63,7 +63,7 @@ const getModuleDetail = async (req, res) => {
     try {
         const { courseId, moduleId } = req.params;
         const moduleData = await CourseModule.find({
-            moduleCourseId: courseId,
+            CourseId: courseId,
             moduleNumber: moduleId
         })
         if (!moduleData) return res.status(400).send({status: false, message: "No Module Found" });
@@ -81,7 +81,7 @@ const getChapterDetail = async (req, res) => {
         const { courseId, moduleId, chapterId } = req.params;
 
         const moduleData = await CourseModule.findOne({
-            moduleCourseId: courseId,
+            CourseId: courseId,
             moduleNumber: moduleId
         }).populate("chapterIds")
 
@@ -149,7 +149,7 @@ const addModule = async (req, res) => {
             moduleTitle,
             moduleBrief,
             moduleFee,
-            moduleCourseId: CourseId,
+            CourseId,
             noOfChapters,
             moduleNumber
         })

@@ -7,7 +7,7 @@ const ModuleSchema = mongoose.Schema({
     moduleBrief: { type: String, required: [true, 'Please add an moduleBrief'] },
     moduleFee: { type: Number },
     noOfChapters: { type: Number },
-    moduleCourseId: { type: mongoose.Types.ObjectId, ref: 'Course' },
+    CourseId: { type: mongoose.Types.ObjectId, ref: 'Course' },
     chapterIds: [{ type: mongoose.Types.ObjectId, ref: 'CourseChapter' }],
     moduleAssessmentIds: [{ type: mongoose.Types.ObjectId, ref: 'CourseAssessment' }]
 }, {
