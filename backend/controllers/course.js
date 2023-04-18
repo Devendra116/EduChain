@@ -138,7 +138,7 @@ const addModule = async (req, res) => {
     try {
         const { moduleTitle, moduleBrief, moduleFee, CourseId, noOfChapters, moduleNumber } = req.body
 
-        if (!moduleTitle, !moduleBrief, !moduleFee, !CourseId, !noOfChapters, !moduleNumber)
+        if (!moduleTitle || !moduleBrief || !moduleFee || !CourseId || !noOfChapters || !moduleNumber)
             return res.status(400).send({ status: false, message: "Please Send Complete Detail" });
         const course = await Course.findById(CourseId)
         if (!course) return res.status(400).send({ status: false, message: "Course Not found" });
