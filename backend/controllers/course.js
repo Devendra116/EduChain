@@ -46,7 +46,7 @@ const getCourseDetail = async (req, res) => {
                     model: 'CourseChapter'
                 }
             })
-        if (!courseData) return res.status(400).send({ status: false,message: "No course Found" });
+        if (!courseData) return res.status(400).send({ status: false, message: "No course Found" });
         return res.status(200).send({ status: true, message: "Course Data", course: courseData });
     } catch (error) {
         return res.status(400).send({ status: false, message: `Error getting course: ${error.message}` });
@@ -62,11 +62,11 @@ const getCourseDetail = async (req, res) => {
 const getModuleDetail = async (req, res) => {
     try {
         const { courseId, moduleId } = req.params;
-        const moduleData = await CourseModule.find({
+        const moduleData = await CourseModule.findOne({
             CourseId: courseId,
             moduleNumber: moduleId
         })
-        if (!moduleData) return res.status(400).send({status: false, message: "No Module Found" });
+        if (!moduleData) return res.status(400).send({ status: false, message: "No Module Found" });
         return res.status(200).send({ status: true, message: "Module Data", module: moduleData });
     } catch (error) {
         return res.status(400).send({ status: false, message: `Error getting Module: ${error.message}` });
@@ -162,6 +162,38 @@ const addModule = async (req, res) => {
     }
 }
 
+// @desc    Add Chapters to Module
+// @route   POST /course/addchapter
+// @access  Private
+const addChapter = async (req, res) => {
+    try {
+        const { CourseId, moduleNumber, chapterSequence, chapterName, chapterBrief, chapterVideoUrl } = req.body
+
+        if (!CourseId || !moduleNumber || !chapterSequence || !chapterName || !chapterBrief || !chapterVideoUrl)
+            return res.status(400).send({ status: false, message: "Please Send Complete Detail" });
+        const module = await CourseModule.findOne({ CourseId, moduleNumber }).populate('chapterIds')
+        if (!module) return res.status(400).send({ status: false, message: "Module Not found" });
+        let chapterExists = false;
+        if (module.chapterIds && module.chapterIds.length >= module.noOfChapters) return res.status(400).send({ status: false, message: "You have already entered all chapters for this module" });
+        if (module.chapterIds && module.chapterIds.length !== 0) {
+            module.chapterIds.forEach(chapter => {
+                if (chapter.chapterSequence == chapterSequence) chapterExists = true;
+            });
+        }
+        if (chapterExists) return res.status(400).send({ status: false, message: "Chapter Already Exist" });
+        const newChapter = new CourseChapter({
+            chapterSequence,
+            chapterName,
+            chapterBrief,
+            chapterVideoUrl
+        })
+        await newChapter.save()
+        await CourseModule.findByIdAndUpdate(module._id, { $push: { chapterIds: newChapter._id } })
+        return res.status(200).send({ status: true, message: "Chapter Added" });
+    } catch (error) {
+        return res.status(400).send({ status: false, message: `Error Adding Chapter: ${error.message}` });
+    }
+}
 
 const searchCourses = async (req, res) => {
     try {
@@ -279,4 +311,14 @@ const coursePaymentApproval = async (req, res) => {
 
 }
 
-module.exports = { getCourses, getModuleDetail, getChapterDetail, addModule, searchCourses, getCourseDetail, createCourse, coursePaymentApproval }
+module.exports = {
+    getCourses,
+    getModuleDetail,
+    getChapterDetail,
+    addModule,
+    addChapter,
+    searchCourses,
+    getCourseDetail,
+    createCourse,
+    coursePaymentApproval
+}
