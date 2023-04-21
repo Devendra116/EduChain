@@ -210,64 +210,6 @@ const searchCourses = async (req, res) => {
     }
 };
 
-// @desc    Update a Course
-// @route   PUT /course/:courseId 
-// @access  Private
-const updateCourse = async (req, res) => {
-    const { courseId, courseTitle, courseBrief, courseFee, language, timeRequired, tags, image, noOfModules } = req.body
-    try {
-        // Find the user
-        const course = await Course.findById(courseId);
-        if (!course) return res.status(404).send({ status: false, message: 'Course not found' });
-
-        // Update the user information
-        if (courseTitle) course.courseTitle = courseTitle;
-        if (courseBrief) course.courseBrief = courseBrief;
-        if (courseFee) course.courseFee = courseFee;
-        if (language) course.language = language;
-        if (timeRequired) course.timeRequired = timeRequired;
-        if (tags) course.tags = tags;
-        if (image) course.image = image;
-        if (noOfModules) course.noOfModules = noOfModules;
-
-        // Save the updates
-        await course.save();
-
-        return res.status(200).send({ status: true, message: 'Course Updated Successfully' });
-    } catch (error) {
-        return res.status(400).send({ status: false, message: `Error Updating Course: ${error.message}` });
-    }
-};
-
-// @desc    Update a Course
-// @route   PUT /course/:courseId/module/:moduleId
-// @access  Private 
-const updateModule = async (req, res) => {
-    const { courseId, moduleId } = req.params;
-    const { courseTitle, courseBrief, courseFee, language, timeRequired, tags, image, noOfModules } = req.body
-    try {
-        // Find the user
-        const course = await Course.findById(courseId);
-        if (!course) return res.status(404).send({ status: false, message: 'Course not found' });
-
-        // Update the user information
-        if (courseTitle) course.courseTitle = courseTitle;
-        if (courseBrief) course.courseBrief = courseBrief;
-        if (courseFee) course.courseFee = courseFee;
-        if (language) course.language = language;
-        if (timeRequired) course.timeRequired = timeRequired;
-        if (tags) course.tags = tags;
-        if (image) course.image = image;
-        if (noOfModules) course.noOfModules = noOfModules;
-
-        // Save the updates
-        await course.save();
-
-        return res.status(200).send({ status: true, message: 'Course Updated Successfully' });
-    } catch (error) {
-        return res.status(400).send({ status: false, message: `Error Updating Course: ${error.message}` });
-    }
-};
 
 // @desc    Add Chapters to Module
 // @route   POST /course/add-assessment
@@ -276,7 +218,7 @@ const addAssessment = async (req, res) => {
     try {
         const { assessmentList, courseId } = req.body;
         if (assessmentList && assessmentList.length < 1) return res.status(400).send({ status: false, message: "Please Enter a Assessment" });
-        if (!courseId) return res.status(400).send({ status: false, message: "Please CourseId" });
+        if (!courseId) return res.status(400).send({ status: false, message: "Please Enter CourseId" });
 
         const addAssessment = await CourseAssessment.insertMany(assessmentList)
         const assessmentListIds = []
@@ -287,6 +229,22 @@ const addAssessment = async (req, res) => {
         return res.status(200).send({ status: true, message: "Assessment Added", addAssessment, assessmentListIds });
     } catch (error) {
         return res.status(400).send({ status: false, message: `Error Adding Assessment: ${error.message}` });
+    }
+}
+
+// @desc    Submit the Course to Educhain Platform for review
+// @route   POST /course/submit
+// @access  Private
+const completeCourse = async (req, res) => {
+    try {
+        const { courseId } = req.body;
+        if (!courseId) return res.status(400).send({ status: false, message: "Please Enter CourseId" });
+        const course = await Course.findByIdAndUpdate(courseId, { courseCompleted: true })
+        if (!course) return res.status(400).send({ status: false, message: "Please Check CourseId" });
+
+        return res.status(200).send({ status: true, message: "Course Submitted" });
+    } catch (error) {
+        return res.status(400).send({ status: false, message: `Error Submitting Course: ${error.message}` });
     }
 }
 
@@ -402,5 +360,6 @@ module.exports = {
     getCourseDetail,
     createCourse,
     coursePaymentApproval,
-    addAssessment
+    addAssessment,
+    completeCourse
 }
