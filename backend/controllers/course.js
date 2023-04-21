@@ -48,6 +48,10 @@ const getCourseDetail = async (req, res) => {
                     model: 'CourseChapter'
                 }
             })
+            .populate({
+                path: 'courseAssessmentIds',
+                model: 'CourseAssessment',
+            })
         if (!courseData) return res.status(400).send({ status: false, message: "No course Found" });
         return res.status(200).send({ status: true, message: "Course Data", course: courseData });
     } catch (error) {
