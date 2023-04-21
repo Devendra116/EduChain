@@ -4,11 +4,13 @@ const CourseModule = require('../models/courseModule')
 const CourseStatus = require('../models/courseStatus')
 const ModuleStatus = require('../models/moduleStatus')
 const CourseChapter = require('../models/courseChapter')
+const CourseAssessment = require('../models/courseAssessment')
 const ObjectId = require('mongoose').Types.ObjectId;
 
 // demonstrates how to get a transaction status
 const { providers } = require("near-api-js");
 const { default: mongoose } = require('mongoose');
+const courseAssessment = require('../models/courseAssessment')
 
 //network config (replace testnet with mainnet or betanet)
 const provider = new providers.JsonRpcProvider(
@@ -208,6 +210,85 @@ const searchCourses = async (req, res) => {
     }
 };
 
+// @desc    Update a Course
+// @route   PUT /course/:courseId 
+// @access  Private
+const updateCourse = async (req, res) => {
+    const { courseId, courseTitle, courseBrief, courseFee, language, timeRequired, tags, image, noOfModules } = req.body
+    try {
+        // Find the user
+        const course = await Course.findById(courseId);
+        if (!course) return res.status(404).send({ status: false, message: 'Course not found' });
+
+        // Update the user information
+        if (courseTitle) course.courseTitle = courseTitle;
+        if (courseBrief) course.courseBrief = courseBrief;
+        if (courseFee) course.courseFee = courseFee;
+        if (language) course.language = language;
+        if (timeRequired) course.timeRequired = timeRequired;
+        if (tags) course.tags = tags;
+        if (image) course.image = image;
+        if (noOfModules) course.noOfModules = noOfModules;
+
+        // Save the updates
+        await course.save();
+
+        return res.status(200).send({ status: true, message: 'Course Updated Successfully' });
+    } catch (error) {
+        return res.status(400).send({ status: false, message: `Error Updating Course: ${error.message}` });
+    }
+};
+
+// @desc    Update a Course
+// @route   PUT /course/:courseId/module/:moduleId
+// @access  Private 
+const updateModule = async (req, res) => {
+    const { courseId, moduleId } = req.params;
+    const { courseTitle, courseBrief, courseFee, language, timeRequired, tags, image, noOfModules } = req.body
+    try {
+        // Find the user
+        const course = await Course.findById(courseId);
+        if (!course) return res.status(404).send({ status: false, message: 'Course not found' });
+
+        // Update the user information
+        if (courseTitle) course.courseTitle = courseTitle;
+        if (courseBrief) course.courseBrief = courseBrief;
+        if (courseFee) course.courseFee = courseFee;
+        if (language) course.language = language;
+        if (timeRequired) course.timeRequired = timeRequired;
+        if (tags) course.tags = tags;
+        if (image) course.image = image;
+        if (noOfModules) course.noOfModules = noOfModules;
+
+        // Save the updates
+        await course.save();
+
+        return res.status(200).send({ status: true, message: 'Course Updated Successfully' });
+    } catch (error) {
+        return res.status(400).send({ status: false, message: `Error Updating Course: ${error.message}` });
+    }
+};
+
+// @desc    Add Chapters to Module
+// @route   POST /course/add-assessment
+// @access  Private
+const addAssessment = async (req, res) => {
+    try {
+        const { assessmentList, courseId } = req.body;
+        if (assessmentList && assessmentList.length < 1) return res.status(400).send({ status: false, message: "Please Enter a Assessment" });
+        if (!courseId) return res.status(400).send({ status: false, message: "Please CourseId" });
+
+        const addAssessment = await CourseAssessment.insertMany(assessmentList)
+        const assessmentListIds = []
+        addAssessment.forEach(assessment => {
+            assessmentListIds.push(assessment._id)
+        });
+        await Course.findByIdAndUpdate(courseId, { $push: { courseAssessmentIds: assessmentListIds } })
+        return res.status(200).send({ status: true, message: "Assessment Added", addAssessment, assessmentListIds });
+    } catch (error) {
+        return res.status(400).send({ status: false, message: `Error Adding Assessment: ${error.message}` });
+    }
+}
 
 // @desc    Payment confirmation and course Enrollment
 // @route   GET /course/approval?transactionId
@@ -320,5 +401,6 @@ module.exports = {
     searchCourses,
     getCourseDetail,
     createCourse,
-    coursePaymentApproval
+    coursePaymentApproval,
+    addAssessment
 }
