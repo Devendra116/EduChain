@@ -254,104 +254,68 @@ const completeCourse = async (req, res) => {
 
 // @desc    Payment confirmation and course Enrollment
 // @route   GET /course/approval?transactionId
-// @access  Restricted  
+// @access  Private 
 const coursePaymentApproval = async (req, res) => {
-    console.log("called coursePaymentApproval")
-    console.log("req.query.transactionId", req.query.transactionId)
     const txresponse = await provider.txStatus(req.query.transactionId, 'testnet');
-    console.log(txresponse.transaction.actions[0].FunctionCall.deposit)
-    // console.log(txresponse.receipts_outcome)
-    console.log(txresponse.transaction.signer_id)
-    // console.log(txresponse.transaction.actions)
-    // console.log(txresponse.transaction_outcome)
+    // let function_args = { "courses": { "64412b99f2bcaf8f626b4c3f": ["1", "2"] } }
+
     const function_args = JSON.parse(Buffer.from(txresponse.transaction.actions[0].FunctionCall.args, 'base64').toString('utf8'))
     console.log(Buffer.from(txresponse.status.SuccessValue, 'base64').toString('utf8'))
     console.log(Buffer.from(txresponse.transaction.actions[0].FunctionCall.args, 'base64').toString('utf8'))
+
     let user_account = txresponse.transaction.signer_id;
     if (function_args.gift_to) user_account = function_args.gift_to
-
-    console.log("function_args", function_args)
     try {
         const current_time = new Date();
         const user = await User.findOne({ nearWallet: user_account })
-
-        for (const course in function_args.courses) {
-            console.log("course", course)
-
+        if (!user) return res.status(400).send({ status: false, message: "User Not found" });
+        for (let course in function_args.courses) {
             const course_enrolled = await CourseStatus.findOne({ courseId: new ObjectId(course), userId: user._id }).populate("courseModulesStatus")
-            console.log("course_enrolled", course_enrolled)
-            console.log("in course_status")
             let module_list = []
             for (let i = 0; i < function_args.courses[course].length; i++) {
                 const module_id = function_args.courses[course][i]
-                console.log("before module_info", typeof module_id);
-                //below line stops execution ehen chapterIds is empty 
-                const module_info = await CourseModule.findOne({ moduleId: new ObjectId(module_id) })
-                console.log("module_info", module_info);
+                //below line stops execution when chapterIds is empty 
+                const module_info = await CourseModule.findOne({ CourseId: new ObjectId(course), moduleNumber: Number(module_id) })
 
                 let chapter_list = []
                 module_info.chapterIds.forEach(chapter => {
                     chapter_list.push({ chapterId: chapter, status: false })
                 })
-                console.log("chapter_list", chapter_list);
                 module_list.push({
-                    moduleStatusId: new ObjectId(),
-                    moduleId: module_id,
+                    moduleId: module_info._id,
                     userId: user._id,
                     chapterStatus: chapter_list,
                     enrollmentDate: current_time,
                     assessmentScore: 0,
-
                 });
-                // console.log("moduleStatusId", new ObjectId());
-                // console.log("moduleId", module_id);
-                // console.log("userId", user._id);
-                // console.log("current_time", current_time);
             }
-            console.log("module_list", module_list);
 
             const module_status_response = await ModuleStatus.create(module_list)
-            console.log("module_status_response", module_status_response);
             let module_status_list = []
             module_status_response.forEach(module_status => {
                 module_status_list.push(module_status._id)
             })
-            console.log("module_status_list", module_status_list);
-            console.log("course", course);
-            console.log("user._id", user._id);
             if (course_enrolled) {
+                const course_status = await CourseStatus.updateOne({ courseId: course, userId: user._id }, { $push: { courseModulesStatus: { $each: module_status_list } } }, { new: true })
+                if (!course_status) return res.status(400).send({ status: false, message: `Error Updating CourseStatus: ${error.message}` });
 
-                const course_status = await CourseStatus.updateOne({ courseId: course, userId: user._id }, { $push: { courseModulesStatus: { $each: module_status_list } } },
-                    { new: true },
-                    (err, updatedCourseStatus) => {
-                        if (err) {
-                            console.log('Error updating CourseStatus:', err);
-                        } else {
-                            console.log('Updated CourseStatus:', updatedCourseStatus);
-                        }
-                    }
-                );
-
+                return res.status(200).send({ status: true, message: "CourseStatus Updated" });
             } else {
-
-
                 const course_status = await CourseStatus.create({
-                    courseStatusId: new ObjectId(),
                     enrollmentDate: current_time,
                     courseId: course,
                     userId: user._id,
                     courseModulesStatus: module_status_list,
                     assessmentScore: 0
                 })
-                console.log("course_status", course_status)
-
+                if (!course_status) return res.status(400).send({ status: false, message: `Error Creating CourseStatus: ${error.message}` });
+                return res.status(200).send({ status: true, message: "CourseStatus Created" });
             }
         }
-        res.status(200).json({ "mesage": "CourseStatus created" })
-    } catch (error) {
-        // handle error
-    }
 
+    } catch (error) {
+        return res.status(400).send({ status: false, message: `Error Creating/Updating CourseStatus: ${error.message}` });
+    }
 }
 
 module.exports = {

@@ -13,7 +13,6 @@ router.post('/addmodule', userAuth, addModule)
 router.post('/addchapter', userAuth, addChapter)
 router.post('/add-assessment', userAuth, addAssessment)
 router.post('/submit', userAuth, completeCourse)
-
-// router.get('/approval', coursePaymentApproval)
+router.post('/approval',userAuth, coursePaymentApproval)
 
 module.exports = router
