@@ -103,6 +103,87 @@ const getChapterDetail = async (req, res) => {
 }
 
 // @desc    Get Particular course detail
+// @route   GET /course/status/:courseId
+// @access  Public
+const getCourseStatusDetail = async (req, res) => {
+    try {
+        const courseData = await CourseStatus.findById(req.params.courseId)
+            .populate({
+                path: 'courseModulesStatus',
+                model: 'ModuleStatus',
+                // populate: {
+                //     path: 'moduleId',
+                //     model: 'CourseModule'
+                // }
+            })
+        if (!courseData) return res.status(400).send({ status: false, message: "No course Found" });
+        return res.status(200).send({ status: true, message: "Course Status Data", course: courseData });
+    } catch (error) {
+        return res.status(400).send({ status: false, message: `Error getting Course Status: ${error.message}` });
+    }
+}
+
+// @desc    Get Particular module detail
+// @route   GET /course/status/module/:moduleId
+// @access  Public
+const getModuleStatusDetail = async (req, res) => {
+    try {
+        const { moduleId } = req.params;
+        console.log(moduleId)
+
+        const moduleData = await ModuleStatus.findOne({
+            moduleId,
+            userId: req.userId
+        })
+        console.log(moduleData)
+        if (!moduleData) return res.status(400).send({ status: false, message: "No Module Status Found" });
+        return res.status(200).send({ status: true, message: "Module Status Data", module: moduleData });
+    } catch (error) {
+        return res.status(400).send({ status: false, message: `Error getting Module Status: ${error.message}` });
+    }
+}
+
+// @desc    Get Particular module detail
+// @route   GET /course/status/module/:moduleId/chapter
+// @access  Public
+const getChapterStatusDetail = async (req, res) => {
+    try {
+        const { moduleId } = req.params;
+        console.log(moduleId)
+
+        const chapterData = await ModuleStatus.aggregate([
+            { $match: { moduleId: ObjectId(moduleId) } },
+            { $unwind: "$chapterStatus" },
+            {
+                $lookup: {
+                    from: "CourseChapter",
+                    localField: "chapterStatus.chapterId",
+                    foreignField: "_id",
+                    as: "chapter"
+                }
+            },
+            { $unwind: "$chapter" },
+            {
+                $group: {
+                    _id: "$chapterStatus.chapterId",
+                    moduleId: { $first: "$moduleId" },
+                    chapter: { $first: "$chapter" }
+                }
+            },
+            { $replaceRoot: { newRoot: { $mergeObjects: ["$chapter", { moduleId: "$moduleId" }] } } },
+            { $project: { _id: 0, moduleId: 0 } }
+        ])
+
+
+        console.log(chapterData)
+        if (!chapterData) return res.status(400).send({ status: false, message: "No Module Status Found" });
+        return res.status(200).send({ status: true, message: "Module Status Data", chapterData: chapterData });
+    } catch (error) {
+        return res.status(400).send({ status: false, message: `Error getting Module Status: ${error.message}` });
+    }
+}
+
+// @desc    Get Particular course detail
 // @route   POST /course/create
 // @access  Private
 const createCourse = async (req, res) => {
@@ -252,18 +333,51 @@ const completeCourse = async (req, res) => {
     }
 }
 
+// @desc    Fetch All the courses that are in-progress
+// @route   GET /course/course-in-progress
+// @access  Private
+const courseInProgress = async (req, res) => {
+    try {
+        const { userId } = req;
+        const courses = await CourseStatus.find({ userId, isCompleted: false })
+        console.log(courses)
+        if (!courses.length) return res.status(400).send({ status: false, message: "No In-Progress Course" });
+
+        return res.status(200).send({ status: true, message: "In-Progress Courses", courses });
+    } catch (error) {
+        return res.status(400).send({ status: false, message: `Error Getting Course: ${error.message}` });
+    }
+}
+
+// @desc    Fetch All the courses that are completed by user
+// @route   GET /course/course-completed
+// @access  Private
+const courseCompleted = async (req, res) => {
+    try {
+        const { userId } = req;
+        const courses = await CourseStatus.find({ userId, isCompleted: true })
+        console.log(courses)
+        if (!courses.length) return res.status(400).send({ status: false, message: "No Completed Course" });
+
+        return res.status(200).send({ status: true, message: "Completed Courses", courses });
+    } catch (error) {
+        return res.status(400).send({ status: false, message: `Error Getting Course: ${error.message}` });
+    }
+}
+
 // @desc    Payment confirmation and course Enrollment
 // @route   GET /course/approval?transactionId
 // @access  Private 
 const coursePaymentApproval = async (req, res) => {
     const txresponse = await provider.txStatus(req.query.transactionId, 'testnet');
-    // let function_args = { "courses": { "64412b99f2bcaf8f626b4c3f": ["1", "2"] } }
+    // let function_args = { "courses": { "64412ac4f2bcaf8f626b4c1b": ["1", "2"] } }
 
     const function_args = JSON.parse(Buffer.from(txresponse.transaction.actions[0].FunctionCall.args, 'base64').toString('utf8'))
     console.log(Buffer.from(txresponse.status.SuccessValue, 'base64').toString('utf8'))
     console.log(Buffer.from(txresponse.transaction.actions[0].FunctionCall.args, 'base64').toString('utf8'))
 
     let user_account = txresponse.transaction.signer_id;
+    console.log(user_account)
     if (function_args.gift_to) user_account = function_args.gift_to
     try {
         const current_time = new Date();
@@ -275,11 +389,16 @@ const coursePaymentApproval = async (req, res) => {
             for (let i = 0; i < function_args.courses[course].length; i++) {
                 const module_id = function_args.courses[course][i]
                 //below line stops execution when chapterIds is empty 
-                const module_info = await CourseModule.findOne({ CourseId: new ObjectId(course), moduleNumber: Number(module_id) })
-
+                const module_info = await CourseModule.findOne({ CourseId: new ObjectId(course), moduleNumber: Number(module_id) }).populate('chapterIds')
+                console.log("module into", module_info);
                 let chapter_list = []
                 module_info.chapterIds.forEach(chapter => {
-                    chapter_list.push({ chapterId: chapter, status: false })
+                    // console.log("capter", chapter)
+                    chapter_list.push({
+                        chapterId: chapter._id,
+                        chapterSequence: chapter.chapterSequence,
+                        status: false
+                    })
                 })
                 module_list.push({
                     moduleId: module_info._id,
@@ -329,5 +448,10 @@ module.exports = {
     createCourse,
     coursePaymentApproval,
     addAssessment,
-    completeCourse
+    completeCourse,
+    courseInProgress,
+    courseCompleted,
+    getCourseStatusDetail,
+    getModuleStatusDetail,
+    getChapterStatusDetail
 }
