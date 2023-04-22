@@ -129,8 +129,6 @@ const getCourseStatusDetail = async (req, res) => {
 const getModuleStatusDetail = async (req, res) => {
     try {
         const { moduleId } = req.params;
-        console.log(moduleId)
-
         const moduleData = await ModuleStatus.findOne({
             moduleId,
             userId: req.userId
@@ -143,45 +141,6 @@ const getModuleStatusDetail = async (req, res) => {
     }
 }
 
-// @desc    Get Particular module detail
-// @route   GET /course/status/module/:moduleId/chapter
-// @access  Public
-const getChapterStatusDetail = async (req, res) => {
-    try {
-        const { moduleId } = req.params;
-        console.log(moduleId)
-
-        const chapterData = await ModuleStatus.aggregate([
-            { $match: { moduleId: ObjectId(moduleId) } },
-            { $unwind: "$chapterStatus" },
-            {
-                $lookup: {
-                    from: "CourseChapter",
-                    localField: "chapterStatus.chapterId",
-                    foreignField: "_id",
-                    as: "chapter"
-                }
-            },
-            { $unwind: "$chapter" },
-            {
-                $group: {
-                    _id: "$chapterStatus.chapterId",
-                    moduleId: { $first: "$moduleId" },
-                    chapter: { $first: "$chapter" }
-                }
-            },
-            { $replaceRoot: { newRoot: { $mergeObjects: ["$chapter", { moduleId: "$moduleId" }] } } },
-            { $project: { _id: 0, moduleId: 0 } }
-        ])
-
-
-        console.log(chapterData)
-        if (!chapterData) return res.status(400).send({ status: false, message: "No Module Status Found" });
-        return res.status(200).send({ status: true, message: "Module Status Data", chapterData: chapterData });
-    } catch (error) {
-        return res.status(400).send({ status: false, message: `Error getting Module Status: ${error.message}` });
-    }
-}
 
 // @desc    Get Particular course detail
 // @route   POST /course/create
@@ -453,5 +412,4 @@ module.exports = {
     courseCompleted,
     getCourseStatusDetail,
     getModuleStatusDetail,
-    getChapterStatusDetail
 }
