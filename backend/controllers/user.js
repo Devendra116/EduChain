@@ -72,34 +72,35 @@ const registerUser = async (req, res) => {
 };
 
 // @desc    Update a existing user
-// @route   POST /user/update/:userId
+// @route   POST /user/update
 // @access  Private
 const updateUser = async (req, res) => {
     const { email, nearWallet, password, firstName, lastName, organization, ngo, areaOfInterests, qualification, profileImg, userBio } = req.body;
     try {
         // Find the user
-        const user = await User.findById(req.params.userId);
-        if (!user) return res.status(404).send({ status: false, message: 'User not found' });
+        const {userId} = req;
+        const userData = await User.findById(userId);
+        if (!userData) return res.status(404).send({ status: false, message: 'User not found' });
 
         // Update the user information
-        if (email) user.email = email;
-        if (nearWallet) user.nearWallet = nearWallet;
-        if (firstName) user.firstName = firstName;
-        if (lastName) user.lastName = lastName;
-        if (organization) user.organization = organization;
-        if (ngo) user.ngo = ngo;
-        if (areaOfInterests) user.areaOfInterests = areaOfInterests;
-        if (qualification) user.qualification = qualification;
-        if (profileImg) user.profileImg = profileImg;
-        if (userBio) user.userBio = userBio;
+        if (email) userData.email = email;
+        if (nearWallet) userData.nearWallet = nearWallet;
+        if (firstName) userData.firstName = firstName;
+        if (lastName) userData.lastName = lastName;
+        if (organization) userData.organization = organization;
+        if (ngo) userData.ngo = ngo;
+        if (areaOfInterests) userData.areaOfInterests = areaOfInterests;
+        if (qualification) userData.qualification = qualification;
+        if (profileImg) userData.profileImg = profileImg;
+        if (userBio) userData.userBio = userBio;
 
         // Hash the password if it was updated
         if (password) {
             const salt = await bcrypt.genSalt(10);
-            user.password = await bcrypt.hash(password, salt);
+            userData.password = await bcrypt.hash(password, salt);
         }
         // Save the updates
-        await user.save();
+        await userData.save();
 
         return res.status(200).send({ status: true, message: 'User Updated Successfully' });
     } catch (error) {
