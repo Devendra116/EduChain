@@ -27,7 +27,7 @@ const provider = new providers.JsonRpcProvider(
 const getCourses = async (req, res) => {
     try {
         const courses = await Course.find()
-        return res.status(200).json(courses)
+        return res.status(200).json({status: true, courses})
     } catch (error) {
         return res.status(400).send({ status: false, message: `Error getting courses ${error}` });
     }

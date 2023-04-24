@@ -10,7 +10,7 @@ router.get('/status/module/:moduleId', userAuth, getModuleStatusDetail)
 router.get('/status/:courseId', userAuth, getCourseStatusDetail)
 router.get('/:courseId/module/:moduleId/chapter/:chapterId', userAuth, getChapterDetail)
 router.get('/:courseId/module/:moduleId', userAuth, getModuleDetail)
-router.get('/:courseId', userAuth, getCourseDetail)
+router.get('/:courseId', getCourseDetail)
 
 
 router.post('/create', userAuth, createCourse)
