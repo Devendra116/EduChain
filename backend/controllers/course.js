@@ -298,12 +298,12 @@ const completeCourse = async (req, res) => {
 const courseInProgress = async (req, res) => {
     try {
         const { userId } = req;
-        const courses = await CourseStatus.find({ userId, isCompleted: false })
+        const courses = await CourseStatus.find({ userId, isCompleted: false }).populate('courseModulesStatus')
         console.log(courses)
         if (!courses.length) return res.status(400).send({ status: false, message: "No In-Progress Course" });
 
         return res.status(200).send({ status: true, message: "In-Progress Courses", courses });
-    } catch (error) {
+    } catch (error) { 
         return res.status(400).send({ status: false, message: `Error Getting Course: ${error.message}` });
     }
 }
