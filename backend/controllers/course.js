@@ -27,7 +27,7 @@ const provider = new providers.JsonRpcProvider(
 const getCourses = async (req, res) => {
     try {
         const courses = await Course.find()
-        return res.status(200).json({status: true, courses})
+        return res.status(200).json({ status: true, courses })
     } catch (error) {
         return res.status(400).send({ status: false, message: `Error getting courses ${error}` });
     }
@@ -325,7 +325,7 @@ const courseCompleted = async (req, res) => {
 }
 
 // @desc    Payment confirmation and course Enrollment
-// @route   GET /course/approval?transactionId
+// @route   POST /course/approval?transactionId
 // @access  Private 
 const coursePaymentApproval = async (req, res) => {
     const txresponse = await provider.txStatus(req.query.transactionId, 'testnet');
@@ -396,6 +396,51 @@ const coursePaymentApproval = async (req, res) => {
     }
 }
 
+// @desc    Fetch All the asessement
+// @route   GET /course/assessment/:courseId
+// @access  Private
+const getCourseAssessment = async (req, res) => {
+    try {
+        const { userId } = req;
+        const { courseId } = req.params;
+        const courseAssessment = await Course.findById(courseId, 'courseAssessmentIds').populate({
+            path: 'courseAssessmentIds',
+            select: '-_id -__v -createdAt -updatedAt -correctOption +question +optionA +optionB +optionC +optionD',
+        })
+        return res.status(200).send({ status: true, message: "Course Assessment", courseAssessment: courseAssessment.courseAssessmentIds });
+    } catch (error) {
+        return res.status(400).send({ status: false, message: `Error Getting Course Assessment: ${error.message}` });
+    }
+}
+
+// @desc    Check asessement and give score
+// @route   POST /course/assessment/:courseId
+// @access  Private
+const setCourseAssessmentScore = async (req, res) => {
+    try {
+        const { userId } = req;
+        const { assessmentList } = req.body;
+        const { courseId } = req.params;
+        const courseAssessment = await Course.findById(courseId, 'courseAssessmentIds').populate({
+            path: 'courseAssessmentIds',
+            select: '-_id -__v -createdAt -updatedAt +correctOption +question -optionA -optionB -optionC -optionD',
+        })
+        const matchingQuestions = assessmentList.filter(question => {
+            return courseAssessment.courseAssessmentIds.some(q => q.question === question.question && q.correctOption === question.correctOption);
+        });
+        const count = matchingQuestions.length;
+        // console.log(count)
+        const updateCourseStatus = await CourseStatus.findOne({ courseId: courseId, userId })
+        if (updateCourseStatus.assessmentScore && updateCourseStatus.assessmentScore > count)
+            return res.status(200).send({ status: true, message: "Previous Assessment Score was Higher than this" });
+        updateCourseStatus.assessmentScore = count
+        await updateCourseStatus.save()
+        return res.status(200).send({ status: true, message: "Course Assessment Score Updated" });
+    } catch (error) {
+        return res.status(400).send({ status: false, message: `Error Getting Course Assessment: ${error.message}` });
+    }
+}
+
 module.exports = {
     getCourses,
     getModuleDetail,
@@ -412,4 +457,6 @@ module.exports = {
     courseCompleted,
     getCourseStatusDetail,
     getModuleStatusDetail,
+    getCourseAssessment,
+    setCourseAssessmentScore
 }
