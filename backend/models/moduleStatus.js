@@ -7,7 +7,7 @@ const moduleStatusSchema = mongoose.Schema({
     chapterStatus: [{
         chapterId: { type: mongoose.Types.ObjectId },
         chapterSequence: { type: Number },
-        status: { type: String }
+        status: { type: Boolean }
     }],
     enrollmentDate: { type: Date, required: [true, 'Please add an enrollmentDate'] },
     completionDate: { type: Date },
