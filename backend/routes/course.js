@@ -21,7 +21,7 @@ router.post('/add-assessment', userAuth, addAssessment)
 router.post('/submit', userAuth, completeCourse)
 router.post('/approval', userAuth, coursePaymentApproval)
 router.post('/assessment/:courseId', userAuth, setCourseAssessmentScore)
-router.post('/update/:courseId/module/:moduleId/chapter/:chapterId', userAuth, updateChapterStatus)
+router.post('/update/:courseId/module/:moduleNumber/chapter/:chapterNumber', userAuth, updateChapterStatus)
 
 
 

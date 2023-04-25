@@ -3,6 +3,7 @@ const ObjectId = mongoose.Types.ObjectId;
 
 const moduleStatusSchema = mongoose.Schema({
     moduleId: { type: mongoose.Types.ObjectId, required: [true, 'Please add an moduleId'] },
+    moduleNumber:{type:Number, required: [true, 'Please add an moduleNumber']},
     userId: { type: mongoose.Types.ObjectId, required: [true, 'Please add an userId'] },
     chapterStatus: [{
         chapterId: { type: mongoose.Types.ObjectId },
