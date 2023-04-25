@@ -31,7 +31,7 @@ const userLogin = async (req, res) => {
         if (!isMatch) return res.status(400).send({ status: false, message: 'Invalid credentials' });
 
         // Generate a token
-        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+        const token = jwt.sign({ userId: user._id, userType: 'user' }, process.env.JWT_SECRET, {
             expiresIn: process.env.JWT_EXPIRE_TIME
         });
         console.log(user._id)
@@ -78,7 +78,7 @@ const updateUser = async (req, res) => {
     const { email, nearWallet, password, firstName, lastName, organization, ngo, areaOfInterests, qualification, profileImg, userBio } = req.body;
     try {
         // Find the user
-        const {userId} = req;
+        const { userId } = req;
         const userData = await User.findById(userId);
         if (!userData) return res.status(404).send({ status: false, message: 'User not found' });
 
@@ -99,7 +99,7 @@ const updateUser = async (req, res) => {
         //     const salt = await bcrypt.genSalt(10);
         //     userData.password = await bcrypt.hash(password, salt);
         // }
-        
+
         // Save the updates
         await userData.save();
 
