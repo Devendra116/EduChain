@@ -314,7 +314,7 @@ const courseInProgress = async (req, res) => {
 const courseCompleted = async (req, res) => {
     try {
         const { userId } = req;
-        const courses = await CourseStatus.find({ userId, isCompleted: true })
+        const courses = await CourseStatus.find({ userId, isCompleted: true }).populate('courseId')
         console.log(courses)
         if (!courses.length) return res.status(400).send({ status: false, message: "No Completed Course" });
 
@@ -361,6 +361,7 @@ const coursePaymentApproval = async (req, res) => {
                 })
                 module_list.push({
                     moduleId: module_info._id,
+                    moduleNumber:module_info.moduleNumber,
                     userId: user._id,
                     chapterStatus: chapter_list,
                     enrollmentDate: current_time,
@@ -442,7 +443,7 @@ const setCourseAssessmentScore = async (req, res) => {
 }
 
 // @desc    Check asessement and give score
-// @route   POST /course/update/:courseId/module/:moduleNumber/chapter/:chapterId
+// @route   POST /course/update/:courseId/module/:moduleNumber/chapter/:chapterNumber
 // @access  Private
 const updateChapterStatus = async (req, res) => {
     
