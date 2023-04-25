@@ -135,10 +135,14 @@ const getCourseStatusDetail = async (req, res) => {
             .populate({
                 path: 'courseModulesStatus',
                 model: 'ModuleStatus',
-                // populate: {
-                //     path: 'moduleId',
-                //     model: 'CourseModule'
-                // }
+                populate: {
+                    path: 'moduleId',
+                    model: 'CourseModule'
+                }
+            })
+            .populate({
+                path: 'courseId',
+                model: 'Course'
             })
         if (!courseData) return res.status(400).send({ status: false, message: "No course Found" });
         return res.status(200).send({ status: true, message: "Course Status Data", course: courseData });
@@ -322,13 +326,24 @@ const completeCourse = async (req, res) => {
 const courseInProgress = async (req, res) => {
     try {
         const { userId } = req;
-        const courses = await CourseStatus.find({ userId, isCompleted: false }).populate('courseModulesStatus').populate('courseId')
+        const courses = await CourseStatus.find({ userId, isCompleted: false })
+            .populate('courseModulesStatus')
+            .populate({
+                path: 'courseId',
+                model: 'Course',
+                populate: {
+                    path: 'instructorId',
+                    model: 'User',
+                    select: 'firstName'
+                }
+            })
+       
         console.log(courses)
         if (!courses.length) return res.status(400).send({ status: false, message: "No In-Progress Course" });
 
         return res.status(200).send({ status: true, message: "In-Progress Courses", courses });
     } catch (error) {
-        return res.status(400).send({ status: false, message: `Error Getting Course: ${error.message}` });
+        return res.status(400).send({ status: false, message: `Error Getting In-Progress Courses: ${error.message}` });
     }
 }
 
@@ -339,12 +354,26 @@ const courseCompleted = async (req, res) => {
     try {
         const { userId } = req;
         const courses = await CourseStatus.find({ userId, isCompleted: true }).populate('courseId')
-        console.log(courses)
         if (!courses.length) return res.status(400).send({ status: false, message: "No Completed Course" });
 
         return res.status(200).send({ status: true, message: "Completed Courses", courses });
     } catch (error) {
-        return res.status(400).send({ status: false, message: `Error Getting Course: ${error.message}` });
+        return res.status(400).send({ status: false, message: `Error Getting Completed Courses: ${error.message}` });
+    }
+}
+
+// @desc    Fetch All the courses that are uploaded by user
+// @route   GET /course/course-uploaded
+// @access  Private
+const courseUploaded = async (req, res) => {
+    try {
+        const { userId } = req;
+        const uploadedCourses = await Course.find({ instructorId: userId })
+        if (!uploadedCourses.length) return res.status(400).send({ status: false, message: "No Course Uploaded" });
+
+        return res.status(200).send({ status: true, message: "Uploaded Courses", courses: uploadedCourses });
+    } catch (error) {
+        return res.status(400).send({ status: false, message: `Error Getting Uploaded Courses: ${error.message}` });
     }
 }
 
@@ -523,5 +552,6 @@ module.exports = {
     getModuleStatusDetail,
     getCourseAssessment,
     setCourseAssessmentScore,
-    updateChapterStatus
+    updateChapterStatus,
+    courseUploaded
 }
