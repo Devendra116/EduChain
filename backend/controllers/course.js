@@ -303,7 +303,7 @@ const courseInProgress = async (req, res) => {
         if (!courses.length) return res.status(400).send({ status: false, message: "No In-Progress Course" });
 
         return res.status(200).send({ status: true, message: "In-Progress Courses", courses });
-    } catch (error) { 
+    } catch (error) {
         return res.status(400).send({ status: false, message: `Error Getting Course: ${error.message}` });
     }
 }
@@ -361,7 +361,7 @@ const coursePaymentApproval = async (req, res) => {
                 })
                 module_list.push({
                     moduleId: module_info._id,
-                    moduleNumber:module_info.moduleNumber,
+                    moduleNumber: module_info.moduleNumber,
                     userId: user._id,
                     chapterStatus: chapter_list,
                     enrollmentDate: current_time,
@@ -446,7 +446,39 @@ const setCourseAssessmentScore = async (req, res) => {
 // @route   POST /course/update/:courseId/module/:moduleNumber/chapter/:chapterNumber
 // @access  Private
 const updateChapterStatus = async (req, res) => {
-    
+    try {
+        const { courseId, moduleNumber, chapterNumber } = req.params;
+        const { userId } = req;
+        let moduleStatusIdToUpdate;
+        const courseStatus = await CourseStatus.findOne({ courseId, userId }).populate('courseModulesStatus')
+        if (!courseStatus) return res.status(400).send({ status: false, message: "No Course status Found" });
+        courseStatus.courseModulesStatus.forEach(moduleStatus => {
+            console.log("moduleStatus", moduleStatus)
+            if (moduleStatus.moduleNumber == moduleNumber) {
+                moduleStatusIdToUpdate = moduleStatus._id;
+            }
+        });
+        if (!moduleStatusIdToUpdate) return res.status(400).send({ status: false, message: "No Module Status Found" });
+        const query = {
+            _id: moduleStatusIdToUpdate,
+            'chapterStatus.chapterSequence': chapterNumber,
+        };
+        const update = {
+            $set: {
+                'chapterStatus.$.status': true,
+            },
+        };
+        const options = {
+            new: true, // Returns the updated document
+        };
+        const updateModuleStatus = await ModuleStatus.findOneAndUpdate(query, update, options)
+        if (!updateModuleStatus) return res.status(400).send({ status: false, message: "Please Check Chapter Number" });
+
+        return res.status(200).send({ status: true, message: "Updated Chapter status" });
+
+    } catch (error) {
+        return res.status(400).send({ status: false, message: `Error Updating Chapter status: ${error.message}` });
+    }
 }
 
 module.exports = {
