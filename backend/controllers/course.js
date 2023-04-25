@@ -298,7 +298,7 @@ const completeCourse = async (req, res) => {
 const courseInProgress = async (req, res) => {
     try {
         const { userId } = req;
-        const courses = await CourseStatus.find({ userId, isCompleted: false }).populate('courseModulesStatus')
+        const courses = await CourseStatus.find({ userId, isCompleted: false }).populate('courseModulesStatus').populate('courseId')
         console.log(courses)
         if (!courses.length) return res.status(400).send({ status: false, message: "No In-Progress Course" });
 
@@ -441,6 +441,13 @@ const setCourseAssessmentScore = async (req, res) => {
     }
 }
 
+// @desc    Check asessement and give score
+// @route   POST /course/update/:courseId/module/:moduleNumber/chapter/:chapterId
+// @access  Private
+const updateChapterStatus = async (req, res) => {
+    
+}
+
 module.exports = {
     getCourses,
     getModuleDetail,
@@ -458,5 +465,6 @@ module.exports = {
     getCourseStatusDetail,
     getModuleStatusDetail,
     getCourseAssessment,
-    setCourseAssessmentScore
+    setCourseAssessmentScore,
+    updateChapterStatus
 }
