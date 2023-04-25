@@ -137,7 +137,11 @@ const getCourseStatusDetail = async (req, res) => {
                 model: 'ModuleStatus',
                 populate: {
                     path: 'moduleId',
-                    model: 'CourseModule'
+                    model: 'CourseModule',
+                    populate: {
+                        path: 'chapterIds',
+                        model: 'CourseChapter'
+                    }
                 }
             })
             .populate({
@@ -326,7 +330,7 @@ const completeCourse = async (req, res) => {
 const courseInProgress = async (req, res) => {
     try {
         const { userId } = req;
-        const courses = await CourseStatus.find({ userId, isCompleted: false })
+        let courses = await CourseStatus.find({ userId, isCompleted: false })
             .populate('courseModulesStatus')
             .populate({
                 path: 'courseId',
@@ -334,14 +338,20 @@ const courseInProgress = async (req, res) => {
                 populate: {
                     path: 'instructorId',
                     model: 'User',
-                    select: 'firstName'
+                    select: 'firstName lastName'
                 }
             })
-       
+        let courseList = courses.map(course => {
+            const instructor = course.courseId.instructorId;
+            const instructorName = `${instructor.firstName} ${instructor.lastName}`;
+            return { ...course.toObject(), instructorName: instructorName };
+
+        });
+
         console.log(courses)
         if (!courses.length) return res.status(400).send({ status: false, message: "No In-Progress Course" });
 
-        return res.status(200).send({ status: true, message: "In-Progress Courses", courses });
+        return res.status(200).send({ status: true, message: "In-Progress Courses", courseList, courses });
     } catch (error) {
         return res.status(400).send({ status: false, message: `Error Getting In-Progress Courses: ${error.message}` });
     }
