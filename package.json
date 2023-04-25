@@ -11,13 +11,18 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "ipfs-http-client": "^60.0.0",
     "nodemon": "^2.0.22"
   },
   "dependencies": {
+    "base-64": "^1.0.0",
     "bcryptjs": "^2.4.3",
+    "canvas": "^2.11.2",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
+    "fs": "^0.0.1-security",
+    "ipfs-core": "^0.14.0",
     "jsonwebtoken": "^9.0.0",
     "mongoose": "^6.7.3",
     "near-api-js": "^2.0.4"
