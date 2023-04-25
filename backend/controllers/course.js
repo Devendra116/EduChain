@@ -7,27 +7,31 @@ const CourseChapter = require('../models/courseChapter')
 const CourseAssessment = require('../models/courseAssessment')
 const ObjectId = require('mongoose').Types.ObjectId;
 
-// demonstrates how to get a transaction status
-const { providers } = require("near-api-js");
-const { default: mongoose } = require('mongoose');
-const courseAssessment = require('../models/courseAssessment')
-
-//network config (replace testnet with mainnet or betanet)
-const provider = new providers.JsonRpcProvider(
-    "https://archival-rpc.testnet.near.org"
-);
-
-
-// @Querying historical data (older than 5 epochs or ~2.5 days) ->  "https://archival-rpc.testnet.near.org" <Maximum number of requests per IP: 600 req/min>
-// @Querying historical data (lesser than 5 epochs or ~2.5 days) ->  "https://rpc.testnet.near.org"         <Maximum number of requests per IP: 600 req/min>
-
 // @desc    Get all courses
 // @route   GET /course
 // @access  Public
 const getCourses = async (req, res) => {
     try {
-        const courses = await Course.find()
-        return res.status(200).json({ status: true, courses })
+        const courses = await Course.find().populate('instructorId');
+
+        const courseList = courses.map(course => ({
+            _id: course._id,
+            courseTitle: course.courseTitle,
+            courseBrief: course.courseBrief,
+            courseFee: course.courseFee,
+            noOfModules: course.noOfModules,
+            language: course.language,
+            timeRequired: course.timeRequired,
+            tags: course.tags,
+            rating: course.rating,
+            image: course.image,
+            instructorName: course.instructorId.firstName + ' ' + course.instructorId.lastName,
+            courseModules: course.courseModules,
+            courseAssessmentIds: course.courseAssessmentIds,
+            courseCompleted: course.courseCompleted,
+            courseApproved: course.courseApproved
+        }));
+        return res.status(200).json({ status: true, courses: courseList })
     } catch (error) {
         return res.status(400).send({ status: false, message: `Error getting courses ${error}` });
     }
@@ -39,7 +43,7 @@ const getCourses = async (req, res) => {
 // @access  Public
 const getCourseDetail = async (req, res) => {
     try {
-        const courseData = await Course.findById(req.params.courseId)
+        const course = await Course.findById(req.params.courseId)
             .populate({
                 path: 'courseModules',
                 model: 'CourseModule',
@@ -52,14 +56,34 @@ const getCourseDetail = async (req, res) => {
                 path: 'courseAssessmentIds',
                 model: 'CourseAssessment',
             })
+            .populate(
+                {
+                    path: 'instructorId',
+                    model: 'User',
+                })
+
+        const courseData = {
+            _id: course._id,
+            courseTitle: course.courseTitle,
+            courseBrief: course.courseBrief,
+            courseFee: course.courseFee,
+            noOfModules: course.noOfModules,
+            language: course.language,
+            timeRequired: course.timeRequired,
+            tags: course.tags,
+            rating: course.rating,
+            image: course.image,
+            instructorName: course.instructorId.firstName + ' ' + course.instructorId.lastName,
+            courseModules: course.courseModules,
+            courseAssessmentIds: course.courseAssessmentIds,
+            courseCompleted: course.courseCompleted,
+            courseApproved: course.courseApproved
+        }
         if (!courseData) return res.status(400).send({ status: false, message: "No course Found" });
         return res.status(200).send({ status: true, message: "Course Data", course: courseData });
     } catch (error) {
         return res.status(400).send({ status: false, message: `Error getting course: ${error.message}` });
-
     }
-
-
 }
 
 // @desc    Get Particular module detail
