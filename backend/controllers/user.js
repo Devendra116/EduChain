@@ -95,10 +95,11 @@ const updateUser = async (req, res) => {
         if (userBio) userData.userBio = userBio;
 
         // Hash the password if it was updated
-        if (password) {
-            const salt = await bcrypt.genSalt(10);
-            userData.password = await bcrypt.hash(password, salt);
-        }
+        // if (password) {
+        //     const salt = await bcrypt.genSalt(10);
+        //     userData.password = await bcrypt.hash(password, salt);
+        // }
+        
         // Save the updates
         await userData.save();
 
