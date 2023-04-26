@@ -137,19 +137,40 @@ const getCourseStatusDetail = async (req, res) => {
                 model: 'ModuleStatus',
                 populate: {
                     path: 'moduleId',
-                    model: 'CourseModule',
-                    populate: {
-                        path: 'chapterIds',
-                        model: 'CourseChapter'
-                    }
+                    model: 'CourseModule'
+                }
+            })
+            .populate({
+                path: 'courseModulesStatus',
+                model: 'ModuleStatus',
+                populate: {
+                    path: 'chapterStatus.chapterId',
+                    model: 'CourseChapter'
                 }
             })
             .populate({
                 path: 'courseId',
                 model: 'Course'
             })
+        const courseDataFormated = {
+            courseStatus: courseData.isCompleted,
+            courseTitle: courseData.courseId.courseTitle,
+            assessmentScore: courseData.assessmentScore,
+            modules: courseData.courseModulesStatus.map(moduleStatus => ({
+                moduleNumber: moduleStatus.moduleId.moduleNumber,
+                moduleTitle: moduleStatus.moduleId.moduleTitle,
+                moduleStatus: moduleStatus.isCompleted,
+                chapters: moduleStatus.chapterStatus.map(chapterStatus => ({
+                    chapterName: chapterStatus.chapterId.chapterName,
+                    chapterBrief: chapterStatus.chapterId.chapterBrief,
+                    chapterVideoUrl: chapterStatus.chapterId.chapterVideoUrl,
+                    chapterSequence: chapterStatus.chapterSequence,
+                    chapterStatus: chapterStatus.status,
+                }))
+            }))
+        }
         if (!courseData) return res.status(400).send({ status: false, message: "No course Found" });
-        return res.status(200).send({ status: true, message: "Course Status Data", course: courseData });
+        return res.status(200).send({ status: true, message: "Course Status Data", course: courseDataFormated });
     } catch (error) {
         return res.status(400).send({ status: false, message: `Error getting Course Status: ${error.message}` });
     }
