@@ -625,11 +625,10 @@ const generateNFTCertificate = async (req, res) => {
             { text: `${courseDetail.instructorId.firstName} ${courseDetail.instructorId.lastName}`, x: 730, y: 655, fontSize: 18, fontBold: true, fontColor: "#444", fontFamily: "Times New Roman" },
             { text: `Completed On ${courseStatus.completionDate.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' }).replace(/(\d+)(?:[snrt][tdh])/, '$1')}`, x: 850, y: 18, fontSize: 18, fontBold: false, fontColor: "#666", fontFamily: "Times New Roman" },
         ]
-        // const certificateUrl = await generateCertificate(certificateData)
-        const certificateUrl = "https://ipfs.io/ipfs/Qmbng3cbgeCbUerk6PUHsAiReDSAmzaVZfzkk1ccyvtjTa"
-        // console.log("certificateUrl", certificateUrl)
+        const certificateUrl = await generateCertificate(certificateData)
+        // const certificateUrl = "https://ipfs.io/ipfs/Qmbng3cbgeCbUerk6PUHsAiReDSAmzaVZfzkk1ccyvtjTa"
         const nftMetaData = {
-            token_id: courseStatus._id+'9',
+            token_id: courseStatus._id,
             metadata: {
                 title: courseDetail.courseTitle,
                 description: `This certificate certifies that ${courseStatus.userId.firstName} ${courseStatus.userId.lastName} has completed the course with distinction`,
@@ -644,7 +643,7 @@ const generateNFTCertificate = async (req, res) => {
                 // reference: "xxxxxxx",
                 // reference_hash: "xxxxxxx"
             },
-            receiver_id: 'd_c.testnet',
+            receiver_id: courseStatus.userId.nearWallet,
         }
         console.log(nftMetaData)
         const result = await mintNFT(nftMetaData)
