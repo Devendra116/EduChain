@@ -6,6 +6,8 @@ const ModuleStatus = require('../models/moduleStatus')
 const CourseChapter = require('../models/courseChapter')
 const CourseAssessment = require('../models/courseAssessment')
 const ObjectId = require('mongoose').Types.ObjectId;
+const { generateCertificate } = require('../utils/nftCertificateGenerator')
+const { mintNFT } = require('../controllers/nftContract')
 
 // @desc    Get all courses
 // @route   GET /course
@@ -552,14 +554,17 @@ const updateChapterStatus = async (req, res) => {
         const { courseId, moduleNumber, chapterNumber } = req.params;
         const { userId } = req;
         let moduleStatusIdToUpdate;
+        let isModuleAlreadyComplete = false
         const courseStatus = await CourseStatus.findOne({ courseId, userId }).populate('courseModulesStatus')
         if (!courseStatus) return res.status(400).send({ status: false, message: "No Course status Found" });
+        console.log(courseStatus)
         courseStatus.courseModulesStatus.forEach(moduleStatus => {
-            console.log("moduleStatus", moduleStatus)
             if (moduleStatus.moduleNumber == moduleNumber) {
                 moduleStatusIdToUpdate = moduleStatus._id;
+                if (moduleStatus.isCompleted) isModuleAlreadyComplete = true
             }
         });
+        if (isModuleAlreadyComplete) return res.status(200).send({ status: false, message: "Module already completed" });
         if (!moduleStatusIdToUpdate) return res.status(400).send({ status: false, message: "No Module Status Found" });
         const query = {
             _id: moduleStatusIdToUpdate,
@@ -574,12 +579,80 @@ const updateChapterStatus = async (req, res) => {
             new: true, // Returns the updated document
         };
         const updateModuleStatus = await ModuleStatus.findOneAndUpdate(query, update, options)
-        if (!updateModuleStatus) return res.status(400).send({ status: false, message: "Please Check Chapter Number" });
 
-        return res.status(200).send({ status: true, message: "Updated Chapter status" });
+        if (!updateModuleStatus) return res.status(400).send({ status: false, message: "Please Check Chapter Number" });
+        let moduleCompleteStatus = true
+        updateModuleStatus.chapterStatus.forEach(chapter => {
+            if (chapter.status == false) moduleCompleteStatus = false
+        });
+        if (!moduleCompleteStatus) return res.status(200).send({ status: true, message: "Updated Chapter status" });
+        updateModuleStatus.isCompleted = true
+        await updateModuleStatus.save()
+        return res.status(200).send({ status: true, message: "Module Completed" });
 
     } catch (error) {
         return res.status(400).send({ status: false, message: `Error Updating Chapter status: ${error.message}` });
+    }
+}
+
+// @desc    generate NFT certificate
+// @route   POST /course/generate-certificate/:courseId/
+// @access  Private
+const generateNFTCertificate = async (req, res) => {
+    try {
+        const { courseId } = req.params;
+        const { userId } = req;
+        const courseStatus = await CourseStatus.findOne({ userId, courseId }, '').populate('courseModulesStatus').populate('userId', 'firstName lastName nearWallet')
+        if (!courseStatus) return res.status(400).send({ status: false, message: "No Course Status found" });
+        let isCourseComplete = true
+        courseStatus.courseModulesStatus.forEach(moduleStatus => {
+            if (!moduleStatus.isCompleted) isCourseComplete = false
+        });
+        if (!isCourseComplete) return res.status(400).send({ status: false, message: "First Complete Course" });
+
+        const courseDetail = await Course.findById(courseId, 'courseTitle').populate('instructorId', 'firstName lastName nearWallet')
+        if (courseDetail.courseAssessmentScoreThreshold > courseStatus.assessmentScore)
+            return res.status(400).send({ status: false, message: "Please Pass Assessement to Get Certificate" });
+
+        courseStatus.isCompleted = true;
+        courseStatus.completionDate = new Date();
+        await courseStatus.save()
+        const certificateData = [
+            { text: `${courseStatus.userId.firstName} ${courseStatus.userId.lastName}`, x: 500, y: 420, fontSize: 48, fontBold: true, fontColor: "#000", fontFamily: "Verdana" },
+            { text: "For Completing The Online Course -", x: 490, y: 470, fontSize: 24, fontBold: false, fontColor: "#333", fontFamily: "Verdana" },
+            { text: `${courseDetail.courseTitle}`, x: 490, y: 500, fontSize: 28, fontBold: true, fontColor: "#111", fontFamily: "Verdana" },
+            { text: `${courseDetail.instructorId.nearWallet}`, x: 735, y: 600, fontSize: 24, fontBold: false, fontColor: "#444", fontFamily: "Times New Roman" },
+            { text: `${courseDetail.instructorId.firstName} ${courseDetail.instructorId.lastName}`, x: 730, y: 655, fontSize: 18, fontBold: true, fontColor: "#444", fontFamily: "Times New Roman" },
+            { text: `Completed On ${courseStatus.completionDate.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' }).replace(/(\d+)(?:[snrt][tdh])/, '$1')}`, x: 850, y: 18, fontSize: 18, fontBold: false, fontColor: "#666", fontFamily: "Times New Roman" },
+        ]
+        // const certificateUrl = await generateCertificate(certificateData)
+        const certificateUrl = "https://ipfs.io/ipfs/Qmbng3cbgeCbUerk6PUHsAiReDSAmzaVZfzkk1ccyvtjTa"
+        // console.log("certificateUrl", certificateUrl)
+        const nftMetaData = {
+            token_id: courseStatus._id+'9',
+            metadata: {
+                title: courseDetail.courseTitle,
+                description: `This certificate certifies that ${courseStatus.userId.firstName} ${courseStatus.userId.lastName} has completed the course with distinction`,
+                media: certificateUrl,
+                // media_hash: "xxxxxxx",
+                copies: 1,
+                // issued_at: "xxxxxxx",
+                // expires_at: "xxxxxxx",
+                // starts_at: "xxxxxxx",
+                // updated_at: "xxxxxxx",
+                // extra: "xxxxxxx",
+                // reference: "xxxxxxx",
+                // reference_hash: "xxxxxxx"
+            },
+            receiver_id: 'd_c.testnet',
+        }
+        console.log(nftMetaData)
+        const result = await mintNFT(nftMetaData)
+        if (result.error) return res.status(400).send({ status: false, message: "Error creating Certificate" });
+        return res.status(200).send({ status: true, message: "Certificate Generated" });
+
+    } catch (error) {
+        return res.status(400).send({ status: false, message: `Error Creating Certificate: ${error.message}` });
     }
 }
 
@@ -602,5 +675,6 @@ module.exports = {
     getCourseAssessment,
     setCourseAssessmentScore,
     updateChapterStatus,
-    courseUploaded
+    courseUploaded,
+    generateNFTCertificate
 }

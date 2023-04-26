@@ -12,7 +12,7 @@ const config = {
     nodeUrl: `https://rpc.${process.env.NETWORK_ID}.near.org`,
 };
 
-const mintNFT = async (req, res) => {
+const mintNFT = async (nft) => {
     try {
         const near = await connect(config);
         const account = await near.account(ACCOUNT_ID);
@@ -22,16 +22,16 @@ const mintNFT = async (req, res) => {
                 actions: [
                     transactions.functionCall(
                         "nft_mint",
-                        Buffer.from(JSON.stringify(req.body.nft)),
+                        Buffer.from(JSON.stringify(nft)),
                         10000000000000,
                         "10000000000000000000000"
                     ),
                 ],
             }
         )
-        return res.status(200).send({ success: true, message: "NFT Minted", result });
+        return result
     } catch (error) {
-        return res.status(400).send({ success: false, message: error.message });
+        return {error: error.message }
     }
 }
 

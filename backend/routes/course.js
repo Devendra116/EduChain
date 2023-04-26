@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const { getCourses, addModule, addChapter, courseInProgress, courseUploaded, updateChapterStatus, setCourseAssessmentScore, getCourseAssessment, getModuleStatusDetail, getCourseStatusDetail, courseCompleted, completeCourse, addAssessment, getModuleDetail, getChapterDetail, createCourse, getCourseDetail, coursePaymentApproval } = require('../controllers/course')
+const { getCourses, addModule, addChapter, courseInProgress, courseUploaded,generateNFTCertificate, updateChapterStatus, setCourseAssessmentScore, getCourseAssessment, getModuleStatusDetail, getCourseStatusDetail, courseCompleted, completeCourse, addAssessment, getModuleDetail, getChapterDetail, createCourse, getCourseDetail, coursePaymentApproval } = require('../controllers/course')
 const { userAuth } = require('../middleware/userAuth')
 
 router.get('/', getCourses)//done
@@ -23,5 +23,6 @@ router.post('/submit', userAuth, completeCourse) //done
 router.post('/approval', userAuth, coursePaymentApproval) //done
 router.post('/assessment/:courseId', userAuth, setCourseAssessmentScore)
 router.post('/update/:courseId/module/:moduleNumber/chapter/:chapterNumber', userAuth, updateChapterStatus)
+router.post('/generate-certificate/:courseId', userAuth, generateNFTCertificate)
 
 module.exports = router

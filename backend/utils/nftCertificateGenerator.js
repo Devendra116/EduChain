@@ -1,6 +1,6 @@
 const { createCanvas, loadImage } = require('canvas');
 const path = require('path');
-const {addImageToIPFS} = require('./ipfs')
+const { addImageToIPFS } = require('./ipfs')
 const fs = require('fs');
 
 async function generateCertificate(textFields) {
@@ -28,7 +28,7 @@ async function generateCertificate(textFields) {
 
   // Save the certificate image as a PNG file
   const certificateImage = canvas.toBuffer('image/png');
-  fs.writeFileSync('certificate.png', certificateImage);
+  // fs.writeFileSync('certificate.png', certificateImage);
   // Add the certificate image to IPFS
   const response = await addImageToIPFS(certificateImage);
 
@@ -47,4 +47,4 @@ async function generateCertificate(textFields) {
 //   { text: "Completed On 22nd April, 2023.", x: 850, y: 18, fontSize: 18, fontBold: false, fontColor: "#666", fontFamily: "Times New Roman" },
 // ]);
 
-module.exports = {generateCertificate}
+module.exports = { generateCertificate }
