@@ -157,7 +157,7 @@ const getCourseStatusDetail = async (req, res) => {
                 }
             })
         const courseDataFormated = {
-            courseId: courseData._id,
+            courseId: courseData.courseId._id,
             courseStatus: courseData.isCompleted,
             courseTitle: courseData.courseId.courseTitle,
             assessmentScore: courseData.assessmentScore,

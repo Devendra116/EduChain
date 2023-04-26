@@ -7,6 +7,7 @@ const ngoSchema = mongoose.Schema({
     password: { type: String, required: [true, 'Please add an password'] },
     phone: { type: Number },
     location: { type: String },
+    documentUrl: { type: String },
     ngoUsersId: [{ type: mongoose.Types.ObjectId, ref: 'User' }],
     ngoCourseEnrolled: [{ type: mongoose.Types.ObjectId, ref: 'Course' }],
     nearWallet: { type: String },
