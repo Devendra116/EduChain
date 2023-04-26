@@ -150,12 +150,24 @@ const getCourseStatusDetail = async (req, res) => {
             })
             .populate({
                 path: 'courseId',
-                model: 'Course'
+                model: 'Course',
+                populate: {
+                    path: 'courseAssessmentIds',
+                    model: 'CourseAssessment'
+                }
             })
         const courseDataFormated = {
+            courseId: courseData._id,
             courseStatus: courseData.isCompleted,
             courseTitle: courseData.courseId.courseTitle,
             assessmentScore: courseData.assessmentScore,
+            assessmentList: courseData.courseId.courseAssessmentIds.map(assessment => ({
+                question: assessment.question,
+                optionA: assessment.optionA,
+                optionB: assessment.optionB,
+                optionC: assessment.optionC,
+                optionD: assessment.optionD,
+            })),
             modules: courseData.courseModulesStatus.map(moduleStatus => ({
                 moduleNumber: moduleStatus.moduleId.moduleNumber,
                 moduleTitle: moduleStatus.moduleId.moduleTitle,
