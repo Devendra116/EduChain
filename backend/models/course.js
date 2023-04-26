@@ -14,6 +14,7 @@ const courseSchema = mongoose.Schema({
     instructorId: { type: mongoose.Types.ObjectId, ref: 'User' },
     courseModules: [{ type: mongoose.Types.ObjectId, ref: 'CourseModule' }],
     courseAssessmentIds: [{ type: mongoose.Types.ObjectId, ref: 'CourseAssessment' }],
+    courseAssessmentScoreThreshold: { type: Number},
     courseCompleted: { type: Boolean, default: false },
     courseApproved: { type: Boolean, default: false }
 }, {

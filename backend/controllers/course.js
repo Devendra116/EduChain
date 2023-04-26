@@ -199,8 +199,8 @@ const createCourse = async (req, res) => {
             courseModules: [],
             courseAssessmentIds: [],
             courseCompleted: false,
-            courseApproved: false
-
+            courseApproved: false,
+            courseAssessmentScoreThreshold: 0
         })
         await newCourse.save()
         return res.status(200).send({ status: true, message: "Course Created", courseData: newCourse });
@@ -295,13 +295,15 @@ const addAssessment = async (req, res) => {
         const { assessmentList, courseId } = req.body;
         if (assessmentList && assessmentList.length < 1) return res.status(400).send({ status: false, message: "Please Enter a Assessment" });
         if (!courseId) return res.status(400).send({ status: false, message: "Please Enter CourseId" });
-
+        let courseDetail = await Course.findById(courseId)
+        if (courseDetail.isCompleted) return res.status(400).send({ status: false, message: "Cannot add course once it is Completed" });
         const addAssessment = await CourseAssessment.insertMany(assessmentList)
         const assessmentListIds = []
         addAssessment.forEach(assessment => {
             assessmentListIds.push(assessment._id)
         });
-        await Course.findByIdAndUpdate(courseId, { $push: { courseAssessmentIds: assessmentListIds } })
+        const totalAssessement = courseDetail.courseAssessmentIds.length + assessmentListIds.length
+        await Course.findByIdAndUpdate(courseId, { $push: { courseAssessmentIds: assessmentListIds }, $set: { courseAssessmentScoreThreshold: Math.round(totalAssessement * 0.75) } })
         return res.status(200).send({ status: true, message: "Assessment Added", addAssessment, assessmentListIds });
     } catch (error) {
         return res.status(400).send({ status: false, message: `Error Adding Assessment: ${error.message}` });
@@ -485,7 +487,9 @@ const setCourseAssessmentScore = async (req, res) => {
         const { userId } = req;
         const { assessmentList } = req.body;
         const { courseId } = req.params;
-        const courseAssessment = await Course.findById(courseId, 'courseAssessmentIds').populate({
+        const updateCourseStatus = await CourseStatus.findOne({ courseId: courseId, userId })
+        if (updateCourseStatus.isCompleted) return res.status(400).send({ status: true, message: "You cannot give Assessment again, Once the course is complted" });
+        const courseAssessment = await Course.findById(courseId, 'courseAssessmentScoreThreshold courseAssessmentIds').populate({
             path: 'courseAssessmentIds',
             select: '-_id -__v -createdAt -updatedAt +correctOption +question -optionA -optionB -optionC -optionD',
         })
@@ -493,13 +497,15 @@ const setCourseAssessmentScore = async (req, res) => {
             return courseAssessment.courseAssessmentIds.some(q => q.question === question.question && q.correctOption === question.correctOption);
         });
         const count = matchingQuestions.length;
-        // console.log(count)
-        const updateCourseStatus = await CourseStatus.findOne({ courseId: courseId, userId })
         if (updateCourseStatus.assessmentScore && updateCourseStatus.assessmentScore > count)
-            return res.status(200).send({ status: true, message: "Previous Assessment Score was Higher than this" });
+            return res.status(200).send({ status: true, message: "Previous Assessment Score was Higher than this", assessmentScore: count });
+        if (updateCourseStatus.assessmentScore && updateCourseStatus.assessmentScore >= courseAssessment.courseAssessmentScoreThreshold) {
+            updateCourseStatus.isCompleted = true;
+            updateCourseStatus.completionDate = new Date()
+        }
         updateCourseStatus.assessmentScore = count
         await updateCourseStatus.save()
-        return res.status(200).send({ status: true, message: "Course Assessment Score Updated" });
+        return res.status(200).send({ status: true, message: "Course Assessment Score Updated", assessmentScore: count });
     } catch (error) {
         return res.status(400).send({ status: false, message: `Error Getting Course Assessment: ${error.message}` });
     }
