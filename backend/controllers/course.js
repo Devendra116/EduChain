@@ -534,7 +534,7 @@ const setCourseAssessmentScore = async (req, res) => {
         const count = matchingQuestions.length;
         if (updateCourseStatus.assessmentScore && updateCourseStatus.assessmentScore > count)
             return res.status(200).send({ status: true, message: "Previous Assessment Score was Higher than this", assessmentScore: count });
-        if (updateCourseStatus.assessmentScore && updateCourseStatus.assessmentScore >= courseAssessment.courseAssessmentScoreThreshold) {
+        if (updateCourseStatus.assessmentScore && count >= courseAssessment.courseAssessmentScoreThreshold) {
             updateCourseStatus.isCompleted = true;
             updateCourseStatus.completionDate = new Date()
         }
@@ -588,7 +588,7 @@ const updateChapterStatus = async (req, res) => {
         if (!moduleCompleteStatus) return res.status(200).send({ status: true, message: "Updated Chapter status" });
         updateModuleStatus.isCompleted = true
         await updateModuleStatus.save()
-        return res.status(200).send({ status: true, message: "Module Completed" });
+        return res.status(200).send({ status: true, message: "Module Completed", moduleStatus: true});
 
     } catch (error) {
         return res.status(400).send({ status: false, message: `Error Updating Chapter status: ${error.message}` });
