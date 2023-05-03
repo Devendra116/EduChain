@@ -482,9 +482,9 @@ const addChapter = async (req, res) => {
 
 const searchCourses = async (req, res) => {
     try {
-        const tags = req.body.tags;
-        const regex = new RegExp(tags.join("|"), "i"); // "i" flag makes the search case-insensitive
-        const courses = await Course.find({ tags: { $regex: regex } })
+        const tags = req.query.tags; // extract the "tags" query parameter value
+        const regex = new RegExp(tags.split(",").join("|"), "i"); // create a case-insensitive regex
+        const courses = await Course.find({ tags: { $regex: regex } }); // find courses matching the regex
         const courseList = courses.map(course => ({
             _id: course._id,
             courseTitle: course.courseTitle,
@@ -504,7 +504,7 @@ const searchCourses = async (req, res) => {
         }));
         return res.send(courseList);
     } catch (error) {
-        return res.status(400).send({ message: 'Error searching courses' });
+        return res.status(400).send({ message:  `Error searching courses ${error.message}` });
     }
 };
 
