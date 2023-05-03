@@ -21,7 +21,7 @@ const ngoAdminLogin = async (req, res) => {
         if (!isMatch) return res.status(400).send({ status: false, message: 'Invalid credentials' });
 
         // Generate a token
-        const token = jwt.sign({ adminId: ngoAdmin._id, userType:'ngoAdmin' }, process.env.JWT_SECRET, {
+        const token = jwt.sign({ ngoId: ngoAdmin._id, userType:'ngoAdmin' }, process.env.JWT_SECRET, {
             expiresIn: process.env.JWT_EXPIRE_TIME
         });
 
@@ -71,7 +71,7 @@ const registerNgo = async (req, res) => {
 // @access  Private
 const getNgoDetail = async (req, res) => {
     try {
-        const ngo = await NgoModel.findById(req.adminId)
+        const ngo = await NgoModel.findById(req.ngoId)
         res.status(200).json(ngo)
     } catch (error) {
         res.status(400).send({ status: false, message: `Error getting NGO detail ${error}` });

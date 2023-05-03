@@ -1,11 +1,11 @@
 const express = require('express')
 const router = express.Router()
 const { getNgoDetail,getNgoDetails, generateToken, registerNgo, registerNgoUser, getNgoUsers, ngoAdminLogin } = require('../controllers/ngo')
-const { adminAuth } = require('../middleware/adminAuth')
+const { ngoAuth } = require('../middleware/ngoAuth')
 
 router.get('/all', getNgoDetails)
 router.get('/users', getNgoUsers)
-router.get('/',adminAuth, getNgoDetail)
+router.get('/',ngoAuth, getNgoDetail)
 
 router.post('/admin-login', ngoAdminLogin)
 router.post('/generate-token', generateToken)
