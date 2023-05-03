@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const User = require('../models/user')
+const Admin = require('../models/admin')
 
 
 // @desc    Fetch User Profile Info
@@ -24,19 +25,34 @@ const userLogin = async (req, res) => {
         const { email, password } = req.body;
         // Find the user
         const user = await User.findOne({ email });
-        if (!user) return res.status(400).send({ status: false, message: 'Invalid credentials' });
+        const admin = await Admin.findOne({ email });
 
-        // Compare the passwords
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) return res.status(400).send({ status: false, message: 'Invalid credentials' });
+        if (user) {
+            // Compare the passwords
+            const isMatch = await bcrypt.compare(password, user.password);
+            if (!isMatch) return res.status(400).send({ status: false, message: 'Invalid User credentials' });
 
-        // Generate a token
-        const token = jwt.sign({ userId: user._id, userType: 'user' }, process.env.JWT_SECRET, {
-            expiresIn: process.env.JWT_EXPIRE_TIME
-        });
-        console.log(user._id)
-        // Return the token
-        return res.status(200).send({ status: true, message: 'User Log In Successfull', token, userType: 'user' });
+            // Generate a token
+            const token = jwt.sign({ userId: user._id, userType: 'user' }, process.env.JWT_SECRET, {
+                expiresIn: process.env.JWT_EXPIRE_TIME
+            });
+            // Return the token
+            return res.status(200).send({ status: true, message: 'User Log In Successfull', token, userType: 'user' });
+        } else if (admin) {
+
+            // Compare the passwords
+            const isMatch = await bcrypt.compare(password, admin.password);
+            if (!isMatch) return res.status(400).send({ status: false, message: 'Invalid Admin credentials' });
+    
+            // Generate a token
+            const token = jwt.sign({ adminId: admin._id, userType: 'admin' }, process.env.JWT_SECRET, {
+                expiresIn: process.env.JWT_EXPIRE_TIME
+            });
+            // Return the token
+            return res.status(200).send({ status: true, message: 'Admin Log In Successful', token, userType: 'admin' });
+        } else {
+            return res.status(400).send({ status: false, message: 'Data Not Found' });
+        }
     } catch (error) {
         return res.status(400).send({ status: false, message: `Error Logging In: ${error.message}` });
     }
