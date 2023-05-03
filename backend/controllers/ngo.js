@@ -14,11 +14,13 @@ const ngoAdminLogin = async (req, res) => {
         const { email, password } = req.body
         // Find the NGO admin 
         const ngoAdmin = await NgoModel.findOne({ email });
-        if (!ngoAdmin) return res.status(400).send({ status: false, message: 'Invalid credentials' });
+        if (!ngoAdmin) return res.status(400).send({ status: false, message: 'No NGO found' });
 
         // Compare the passwords
         const isMatch = await bcrypt.compare(password, ngoAdmin.password);
         if (!isMatch) return res.status(400).send({ status: false, message: 'Invalid credentials' });
+
+        if (!ngoAdmin.isApproved) return res.status(400).send({ status: false, message: 'Your Application is not Approved Yet, kindly try after some Time' });
 
         // Generate a token
         const token = jwt.sign({ ngoId: ngoAdmin._id, userType:'ngoAdmin' }, process.env.JWT_SECRET, {
