@@ -1,3 +1,4 @@
+require('dotenv').config()
 const NgoModel = require("../models/ngo")
 const UserModel = require("../models/user")
 const jwt = require('jsonwebtoken')
@@ -23,7 +24,7 @@ const ngoAdminLogin = async (req, res) => {
         if (!ngoAdmin.isApproved) return res.status(400).send({ status: false, message: 'Your Application is not Approved Yet, kindly try after some Time' });
 
         // Generate a token
-        const token = jwt.sign({ ngoId: ngoAdmin._id, userType:'ngoAdmin' }, process.env.JWT_SECRET, {
+        const token = jwt.sign({ ngoId: ngoAdmin._id, userType: 'ngoAdmin' }, process.env.JWT_SECRET, {
             expiresIn: process.env.JWT_EXPIRE_TIME
         });
 
@@ -125,8 +126,6 @@ const generateToken = async (req, res) => {
         res.status(400).send({ status: false, message: `Error getting NGO detail ${error.message}` });
     }
 }
-
-
 
 // @desc    Register a new NGO user
 // @route   POST /ngo/register-user

@@ -1,3 +1,4 @@
+require('dotenv').config()
 const Course = require('../models/course')
 const User = require('../models/user')
 const CourseModule = require('../models/courseModule')
@@ -310,12 +311,27 @@ const addChapter = async (req, res) => {
 
 const searchCourses = async (req, res) => {
     try {
-        console.log("in searchCourses ")
-        const tags = req.query.tags;
-        const courses = await Course.find({ tags: { $in: tags } });
-        console.log("out searchCourses ")
-
-        return res.send(courses);
+        const tags = req.body.tags;
+        const regex = new RegExp(tags.join("|"), "i"); // "i" flag makes the search case-insensitive
+        const courses = await Course.find({ tags: { $regex: regex } })
+        const courseList = courses.map(course => ({
+            _id: course._id,
+            courseTitle: course.courseTitle,
+            courseBrief: course.courseBrief,
+            courseFee: course.courseFee,
+            noOfModules: course.noOfModules,
+            language: course.language,
+            timeRequired: course.timeRequired,
+            tags: course.tags,
+            rating: course.rating,
+            image: course.image,
+            instructorName: course.instructorId.firstName + ' ' + course.instructorId.lastName,
+            courseModules: course.courseModules,
+            courseAssessmentIds: course.courseAssessmentIds,
+            courseCompleted: course.courseCompleted,
+            courseApproved: course.courseApproved
+        }));
+        return res.send(courseList);
     } catch (error) {
         return res.status(400).send({ message: 'Error searching courses' });
     }
@@ -427,8 +443,8 @@ const courseUploaded = async (req, res) => {
 // @desc    Payment confirmation and course Enrollment
 // @route   POST /course/approval?transactionId
 // @access  Private 
-const coursePaymentApproval = async (req, res) => {
-    const txresponse = await provider.txStatus(req.query.transactionId, 'testnet');
+const coursePaymentApproval = async (req, res) => { 
+    const txresponse = await provider.txStatus(req.query.transactionId, process.env.NETWORK_ID);
     // let function_args = { "courses": { "64412ac4f2bcaf8f626b4c1b": ["1", "2"] } }
 
     const function_args = JSON.parse(Buffer.from(txresponse.transaction.actions[0].FunctionCall.args, 'base64').toString('utf8'))
