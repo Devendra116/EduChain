@@ -36,7 +36,7 @@ const userLogin = async (req, res) => {
         });
         console.log(user._id)
         // Return the token
-        return res.status(200).send({ status: true, message: 'User Log In Successfull', token });
+        return res.status(200).send({ status: true, message: 'User Log In Successfull', token, userType: 'user' });
     } catch (error) {
         return res.status(400).send({ status: false, message: `Error Logging In: ${error.message}` });
     }

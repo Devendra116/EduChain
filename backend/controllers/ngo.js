@@ -29,7 +29,7 @@ const ngoAdminLogin = async (req, res) => {
         });
 
         // Return the token
-        return res.status(200).send({ status: true, message: "Admin Log In Successfull", token });
+        return res.status(200).send({ status: true, message: "Admin Log In Successfull", token, userType: 'ngoAdmin' });
     } catch (error) {
         return res.status(400).send({ status: false, message: `Error logging in ${error} ` });
     }

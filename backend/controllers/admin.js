@@ -81,7 +81,7 @@ const adminLogin = async (req, res) => {
         });
         console.log(admin._id)
         // Return the token
-        return res.status(200).send({ status: true, message: 'Admin Log In Successful', token });
+        return res.status(200).send({ status: true, message: 'Admin Log In Successful', token, userType: 'admin' });
     } catch (error) {
         return res.status(400).send({ status: false, message: `Error Logging In: ${error.message}` });
     }
