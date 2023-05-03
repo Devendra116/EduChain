@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const Admin = require('../models/admin')
+const NGO = require('../models/ngo')
 
 
 // @desc    Fetch admin Profile Info
@@ -11,6 +12,50 @@ const adminProfile = async (req, res) => {
         const admin = await Admin.findById(req.ngoId);
         if (!admin) return res.status(400).send({ status: false, message: 'No Admin found' });
         return res.status(200).send({ status: true, message: 'Admin Data', admin });
+    } catch (error) {
+        return res.status(400).send({ status: false, message: `Error Logging In: ${error.message}` });
+    }
+};
+
+// @desc    Fetch All approved NGO's
+// @route   GET /admin/approved-ngos
+// @access  Private
+const getApprovedNgos = async (req, res) => {
+    try {
+        const ngoList = await NGO.find({ isApproved: true });
+        const formatedNgoList = ngoList.map(ngo => ({
+            email: ngo.email,
+            name: ngo.name,
+            phone: ngo.phone,
+            location: ngo.location,
+            documentUrl: ngo.documentUrl,
+            maxUserCount: ngo.maxUserCount,
+            joinedUserCount: ngo.joinedUserCount,
+            isApproved: ngo.isApproved
+        }));
+        return res.status(200).send({ status: true, message: 'Approved NGO Data', ngoList: formatedNgoList });
+    } catch (error) {
+        return res.status(400).send({ status: false, message: `Error Logging In: ${error.message}` });
+    }
+};
+
+// @desc    Fetch All approved NGO's
+// @route   GET /admin/pending-ngos
+// @access  Private
+const getApprovalPendingNgos = async (req, res) => {
+    try {
+        const ngoList = await NGO.find({ isApproved: false });
+        const formatedNgoList = ngoList.map(ngo => ({
+            email: ngo.email,
+            name: ngo.name,
+            phone: ngo.phone,
+            location: ngo.location,
+            documentUrl: ngo.documentUrl,
+            maxUserCount: ngo.maxUserCount,
+            joinedUserCount: ngo.joinedUserCount,
+            isApproved: ngo.isApproved
+        }));
+        return res.status(200).send({ status: true, message: 'Approval Pending NGO Data', ngoList: formatedNgoList });
     } catch (error) {
         return res.status(400).send({ status: false, message: `Error Logging In: ${error.message}` });
     }
@@ -31,7 +76,7 @@ const adminLogin = async (req, res) => {
         if (!isMatch) return res.status(400).send({ status: false, message: 'Invalid credentials' });
 
         // Generate a token
-        const token = jwt.sign({ ngoId: admin._id, userType: 'admin' }, process.env.JWT_SECRET, {
+        const token = jwt.sign({ adminId: admin._id, userType: 'admin' }, process.env.JWT_SECRET, {
             expiresIn: process.env.JWT_EXPIRE_TIME
         });
         console.log(admin._id)
@@ -118,4 +163,54 @@ const deleteAdmin = async (req, res) => {
     }
 };
 
-module.exports = { adminProfile, adminLogin, registerAdmin, updateAdmin, deleteAdmin }
+// @desc    Change NGO approval status
+// @route   POST /admin/change-status
+// @access  Private
+const changeNgoStatus = async (req, res) => {
+    const { ngoEmail } = req.body;
+    try {
+        // Find the user
+        const ngoData = await NGO.findOne({ email: ngoEmail });
+        if (!ngoData) return res.status(404).send({ status: false, message: 'NGO not found' });
+
+        // Update the user information
+        if (ngoData.isApproved) {
+            ngoData.isApproved = false;
+        } else {
+            ngoData.isApproved = true;
+        }  // Save the updates
+        await ngoData.save();
+        return res.status(200).send({ status: true, message: 'NGO Updated Successfully' });
+    } catch (error) {
+        return res.status(400).send({ status: false, message: `Error Updating NGO: ${error.message}` });
+    }
+};
+
+// @desc    Change NGO approval status
+// @route   DELETE /admin/delete-ngo
+// @access  Private
+const deleteNgo = async (req, res) => {
+    const { ngoEmail } = req.body;
+    try {
+        // Find the user
+        const ngoData = await NGO.findOneAndDelete({ email: ngoEmail });
+        if (!ngoData) return res.status(404).send({ status: false, message: 'NGO not found for Deletion' });
+
+        return res.status(200).send({ status: true, message: 'NGO Deleted Successfully' });
+    } catch (error) {
+        return res.status(400).send({ status: false, message: `Error Updating NGO: ${error.message}` });
+    }
+};
+
+
+module.exports = {
+    adminProfile,
+    adminLogin,
+    registerAdmin,
+    updateAdmin,
+    getApprovedNgos,
+    deleteAdmin,
+    getApprovalPendingNgos,
+    changeNgoStatus,
+    deleteNgo
+}
