@@ -13,6 +13,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use('/user', require('./routes/user'))
 app.use('/ngo', require('./routes/ngo'))
 app.use('/course', require('./routes/course'))
+app.use('/admin', require('./routes/admin'))
 
 
 app.listen(process.env.PORT, () =>

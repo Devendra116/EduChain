@@ -1,3 +1,4 @@
+require('dotenv').config()
 const NgoModel = require("../models/ngo")
 const UserModel = require("../models/user")
 const jwt = require('jsonwebtoken')
@@ -14,14 +15,16 @@ const ngoAdminLogin = async (req, res) => {
         const { email, password } = req.body
         // Find the NGO admin 
         const ngoAdmin = await NgoModel.findOne({ email });
-        if (!ngoAdmin) return res.status(400).send({ status: false, message: 'Invalid credentials' });
+        if (!ngoAdmin) return res.status(400).send({ status: false, message: 'No NGO found' });
 
         // Compare the passwords
         const isMatch = await bcrypt.compare(password, ngoAdmin.password);
         if (!isMatch) return res.status(400).send({ status: false, message: 'Invalid credentials' });
 
+        if (!ngoAdmin.isApproved) return res.status(400).send({ status: false, message: 'Your Application is not Approved Yet, kindly try after some Time' });
+
         // Generate a token
-        const token = jwt.sign({ adminId: ngoAdmin._id, userType:'ngoAdmin' }, process.env.JWT_SECRET, {
+        const token = jwt.sign({ ngoId: ngoAdmin._id, userType: 'ngoAdmin' }, process.env.JWT_SECRET, {
             expiresIn: process.env.JWT_EXPIRE_TIME
         });
 
@@ -72,7 +75,7 @@ const registerNgo = async (req, res) => {
 // @access  Private
 const getNgoDetail = async (req, res) => {
     try {
-        const ngo = await NgoModel.findById(req.adminId)
+        const ngo = await NgoModel.findById(req.ngoId)
         res.status(200).json(ngo)
     } catch (error) {
         res.status(400).send({ status: false, message: `Error getting NGO detail ${error}` });
@@ -124,8 +127,6 @@ const generateToken = async (req, res) => {
         res.status(400).send({ status: false, message: `Error getting NGO detail ${error.message}` });
     }
 }
-
-
 
 // @desc    Register a new NGO user
 // @route   POST /ngo/register-user

@@ -13,7 +13,8 @@ const ngoSchema = mongoose.Schema({
     nearWallet: { type: String },
     secretCode: { type: String },
     maxUserCount: { type: Number },
-    joinedUserCount: { type: Number, default: 0 }
+    joinedUserCount: { type: Number, default: 0 },
+    isApproved: { type: Boolean, default: false },
 }, {
     timestamps: true
 })

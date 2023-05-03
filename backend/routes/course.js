@@ -1,9 +1,10 @@
 const express = require('express')
 const router = express.Router()
-const { getCourses, addModule, addChapter, courseInProgress, courseUploaded,generateNFTCertificate, updateChapterStatus, setCourseAssessmentScore, getCourseAssessment, getModuleStatusDetail, getCourseStatusDetail, courseCompleted, completeCourse, addAssessment, getModuleDetail, getChapterDetail, createCourse, getCourseDetail, coursePaymentApproval } = require('../controllers/course')
+const { getCourses, addModule, addChapter, searchCourses, courseInProgress, courseUploaded, generateNFTCertificate, updateChapterStatus, setCourseAssessmentScore, getCourseAssessment, getModuleStatusDetail, getCourseStatusDetail, courseCompleted, completeCourse, addAssessment, getModuleDetail, getChapterDetail, createCourse, getCourseDetail, coursePaymentApproval } = require('../controllers/course')
 const { userAuth } = require('../middleware/userAuth')
 
 router.get('/', getCourses)//done
+router.get('/search', searchCourses)
 router.get('/course-in-progress', userAuth, courseInProgress)//done
 router.get('/course-completed', userAuth, courseCompleted) //done
 router.get('/course-uploaded', userAuth, courseUploaded)
