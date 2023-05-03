@@ -40,7 +40,7 @@ const ngoAdminLogin = async (req, res) => {
 // @access  Public
 const registerNgo = async (req, res) => {
     try {
-        const { email, password, name, phone, location } = req.body
+        const { email, password, name, phone, location, documentUrl } = req.body
 
         let ngo = await NgoModel.findOne({ email });
         if (ngo) return res.status(400).send({ status: false, message: 'NGO already exists for given Email' });
@@ -54,7 +54,8 @@ const registerNgo = async (req, res) => {
             ngo_user_id: [],
             courseEnrolled: [],
             joinedUserCount: 0,
-            maxUserCount: 50
+            maxUserCount: 50,
+            documentUrl
         });
 
         // Hash the password
