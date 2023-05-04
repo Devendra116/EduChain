@@ -1,6 +1,7 @@
 require('dotenv').config()
 const Course = require('../models/course')
 const User = require('../models/user')
+const NGO = require('../models/ngo')
 const CourseModule = require('../models/courseModule')
 const CourseStatus = require('../models/courseStatus')
 const ModuleStatus = require('../models/moduleStatus')
@@ -481,31 +482,31 @@ const addChapter = async (req, res) => {
 };
 
 const searchCourses = async (req, res) => {
-    try {
-        const tags = req.query.tags; // extract the "tags" query parameter value
-        const regex = new RegExp(tags.split(",").join("|"), "i"); // create a case-insensitive regex
-        const courses = await Course.find({ tags: { $regex: regex } }); // find courses matching the regex
-        const courseList = courses.map(course => ({
-            _id: course._id,
-            courseTitle: course.courseTitle,
-            courseBrief: course.courseBrief,
-            courseFee: course.courseFee,
-            noOfModules: course.noOfModules,
-            language: course.language,
-            timeRequired: course.timeRequired,
-            tags: course.tags,
-            rating: course.rating,
-            image: course.image,
-            instructorName: course.instructorId.firstName + ' ' + course.instructorId.lastName,
-            courseModules: course.courseModules,
-            courseAssessmentIds: course.courseAssessmentIds,
-            courseCompleted: course.courseCompleted,
-            courseApproved: course.courseApproved
-        }));
-        return res.send(courseList);
-    } catch (error) {
-        return res.status(400).send({ message:  `Error searching courses ${error.message}` });
-    }
+  try {
+    const tags = req.query.tags; // extract the "tags" query parameter value
+    const regex = new RegExp(tags.split(",").join("|"), "i"); // create a case-insensitive regex
+    const courses = await Course.find({ tags: { $regex: regex } }); // find courses matching the regex
+    const courseList = courses.map(course => ({
+      _id: course._id,
+      courseTitle: course.courseTitle,
+      courseBrief: course.courseBrief,
+      courseFee: course.courseFee,
+      noOfModules: course.noOfModules,
+      language: course.language,
+      timeRequired: course.timeRequired,
+      tags: course.tags,
+      rating: course.rating,
+      image: course.image,
+      instructorName: course.instructorId.firstName + ' ' + course.instructorId.lastName,
+      courseModules: course.courseModules,
+      courseAssessmentIds: course.courseAssessmentIds,
+      courseCompleted: course.courseCompleted,
+      courseApproved: course.courseApproved
+    }));
+    return res.send(courseList);
+  } catch (error) {
+    return res.status(400).send({ message: `Error searching courses ${error.message}` });
+  }
 };
 
 // @desc    Add Chapters to Module
@@ -697,9 +698,9 @@ const courseUploaded = async (req, res) => {
 // @desc    Payment confirmation and course Enrollment
 // @route   POST /course/approval?transactionId
 // @access  Private 
-const coursePaymentApproval = async (req, res) => { 
-    const txresponse = await provider.txStatus(req.query.transactionId, process.env.NETWORK_ID);
-    // let function_args = { "courses": { "64412ac4f2bcaf8f626b4c1b": ["1", "2"] } }
+const coursePaymentApproval = async (req, res) => {
+  const txresponse = await provider.txStatus(req.query.transactionId, process.env.NETWORK_ID);
+  // let function_args = { "courses": { "64412ac4f2bcaf8f626b4c1b": ["1", "2"] } }
 
   const function_args = JSON.parse(
     Buffer.from(
@@ -1133,6 +1134,134 @@ const generateNFTCertificate = async (req, res) => {
   }
 };
 
+
+async function buyCourse(userId, courses) {
+  console.log("courses", courses)
+  console.log("userId", userId)
+  const current_time = new Date();
+  for (let course in courses) {
+    console.log("course", course);
+    const course_enrolled = await CourseStatus.findOne({
+      courseId: new ObjectId(course),
+      userId: userId,
+    }).populate('courseModulesStatus');
+    let module_list = [];
+    for (let i = 0; i < courses[course].length; i++) {
+      const module_id = courses[course][i];
+      console.log("module_id", module_id);
+      //below line stops execution when chapterIds is empty
+      const module_info = await CourseModule.findOne({
+        CourseId: new ObjectId(course),
+        moduleNumber: Number(module_id),
+      }).populate('chapterIds');
+      console.log('module into', module_info);
+      let chapter_list = [];
+      module_info.chapterIds.forEach((chapter) => {
+        // console.log("capter", chapter)
+        chapter_list.push({
+          chapterId: chapter._id,
+          chapterSequence: chapter.chapterSequence,
+          status: false,
+        });
+      });
+      module_list.push({
+        moduleId: module_info._id,
+        moduleNumber: module_info.moduleNumber,
+        userId: userId,
+        chapterStatus: chapter_list,
+        enrollmentDate: current_time,
+        assessmentScore: 0,
+      });
+    }
+
+    const module_status_response = await ModuleStatus.create(module_list);
+    let module_status_list = [];
+    module_status_response.forEach((module_status) => {
+      module_status_list.push(module_status._id);
+    });
+    if (course_enrolled) {
+      const course_status = await CourseStatus.updateOne(
+        { courseId: course, userId: userId },
+        { $push: { courseModulesStatus: { $each: module_status_list } } },
+        { new: true }
+      );
+      if (!course_status)
+        return {
+          status: false,
+          message: `Error Updating CourseStatus: ${error.message}`,
+        }
+
+      return { status: true, message: 'CourseStatus Updated' }
+    } else {
+      const course_status = await CourseStatus.create({
+        enrollmentDate: current_time,
+        courseId: course,
+        userId: userId,
+        courseModulesStatus: module_status_list,
+        assessmentScore: 0,
+      });
+      if (!course_status)
+        return {
+          status: false,
+          message: `Error Creating CourseStatus: ${error.message}`,
+        }
+      return { status: true, message: 'CourseStatus Created' }
+    }
+  }
+}
+
+
+// @desc    Payment confirmation and course Enrollment for NGO associates
+// @route   POST /course/ngo-approval?transactionId
+// @access  Private 
+const ngoCoursePaymentApproval = async (req, res) => {
+  const txresponse = await provider.txStatus(req.query.transactionId, process.env.NETWORK_ID);
+  // let function_args = { "courses": { "64412ac4f2bcaf8f626b4c1b": ["1", "2"] } }
+
+  const function_args = JSON.parse(
+    Buffer.from(
+      txresponse.transaction.actions[0].FunctionCall.args,
+      'base64'
+    ).toString('utf8')
+  );
+  console.log(
+    Buffer.from(txresponse.status.SuccessValue, 'base64').toString('utf8')
+  );
+  console.log(
+    Buffer.from(
+      txresponse.transaction.actions[0].FunctionCall.args,
+      'base64'
+    ).toString('utf8')
+  );
+
+  let user_account = txresponse.transaction.signer_id;
+  console.log(user_account);
+  if (function_args.gift_to) user_account = function_args.gift_to;
+  try {
+    const ngo = await NGO.findOne({ nearWallet: user_account });
+    if (!ngo) return res.status(400).send({ status: false, message: 'NGO Not found' });
+    if (!ngo.ngoUsersId.length) return res.status(400).send({ status: false, message: 'No users to add course for' });
+    ngo.ngoUsersId.forEach(async (user) => {
+      const result = await buyCourse(user, function_args.courses)
+      if (!result.status) return res
+        .status(400)
+        .send(result);
+    });
+    return res
+      .status(200)
+      .send({
+        status: true,
+        message: "Course Approval Successful",
+      });
+  } catch (error) {
+    return res
+      .status(400)
+      .send({
+        status: false,
+        message: `Error Creating/Updating CourseStatus: ${error.message}`,
+      });
+  }
+};
 module.exports = {
   getCourses,
   getModuleDetail,
@@ -1154,4 +1283,5 @@ module.exports = {
   updateChapterStatus,
   courseUploaded,
   generateNFTCertificate,
+  ngoCoursePaymentApproval
 };
