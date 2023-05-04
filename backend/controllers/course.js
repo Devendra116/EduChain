@@ -1000,13 +1000,15 @@ const generateNFTCertificate = async (req, res) => {
   try {
     const { courseId } = req.params;
     const { userId } = req;
-    const courseStatus = await CourseStatus.findOne({ userId, courseId }, '')
+    const courseStatus = await CourseStatus.findOne({ userId, courseId }, 'certificateUrl')
       .populate('courseModulesStatus')
       .populate('userId', 'firstName lastName nearWallet');
+    console.log("courseStatus", courseStatus);
     if (!courseStatus)
       return res
         .status(400)
         .send({ status: false, message: 'No Course Status found' });
+    if (courseStatus.certificateUrl) return res.status(400).send({ status: false, message: 'certificate Already Generated' });
     let isCourseComplete = true;
     courseStatus.courseModulesStatus.forEach((moduleStatus) => {
       if (!moduleStatus.isCompleted) isCourseComplete = false;
@@ -1032,7 +1034,7 @@ const generateNFTCertificate = async (req, res) => {
 
     courseStatus.isCompleted = true;
     courseStatus.completionDate = new Date();
-    await courseStatus.save();
+
     const certificateData = [
       {
         text: `${courseStatus.userId.firstName} ${courseStatus.userId.lastName}`,
@@ -1121,6 +1123,8 @@ const generateNFTCertificate = async (req, res) => {
       return res
         .status(400)
         .send({ status: false, message: 'Error creating Certificate' });
+    courseStatus.certificateUrl = certificateUrl;
+    await courseStatus.save();
     return res
       .status(200)
       .send({ status: true, message: 'Certificate Generated' });
