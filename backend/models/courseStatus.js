@@ -9,6 +9,7 @@ const courseStatusSchema = mongoose.Schema({
     userId: { type: mongoose.Types.ObjectId, ref: 'User', required: [true, 'Please add an userId'] },
     courseModulesStatus: [{ type: mongoose.Types.ObjectId, ref: 'ModuleStatus', required: [true, 'Please add an courseModulesStatus'] }],
     assessmentScore: { type: Number },
+    certificateUrl: { type: String },
 }, {
     timestamps: true
 })
