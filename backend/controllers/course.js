@@ -502,9 +502,9 @@ const searchCourses = async (req, res) => {
             courseCompleted: course.courseCompleted,
             courseApproved: course.courseApproved
         }));
-        return res.send(courseList);
+        return res.status(200).send({ status: true, courseList });
     } catch (error) {
-        return res.status(400).send({ message:  `Error searching courses ${error.message}` });
+        return res.status(400).send({ status: false, message:  `Error searching courses ${error.message}` });
     }
 };
 
@@ -858,7 +858,7 @@ const setCourseAssessmentScore = async (req, res) => {
       return res
         .status(400)
         .send({
-          status: true,
+          status: false,
           message:
             'You cannot give Assessment again, Once the course is complted',
         });
@@ -885,7 +885,7 @@ const setCourseAssessmentScore = async (req, res) => {
       return res
         .status(200)
         .send({
-          status: true,
+          status: false,
           message: 'Previous Assessment Score was Higher than this',
           assessmentScore: count,
         });

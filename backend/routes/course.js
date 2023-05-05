@@ -4,12 +4,12 @@ const { getCourses, addModule, addChapter, searchCourses, courseInProgress, cour
 const { userAuth } = require('../middleware/userAuth')
 
 router.get('/', getCourses)//done
-router.get('/search', searchCourses)
+router.get('/search', searchCourses) //done
 router.get('/course-in-progress', userAuth, courseInProgress)//done
 router.get('/course-completed', userAuth, courseCompleted) //done
-router.get('/course-uploaded', userAuth, courseUploaded)
-router.get('/status/module/:moduleId', userAuth, getModuleStatusDetail)
-router.get('/status/:courseId', userAuth, getCourseStatusDetail)
+router.get('/course-uploaded', userAuth, courseUploaded) //done
+router.get('/status/module/:moduleId', userAuth, getModuleStatusDetail) //done
+router.get('/status/:courseId', userAuth, getCourseStatusDetail)//done
 router.get('/:courseId/module/:moduleId/chapter/:chapterId', userAuth, getChapterDetail)//done
 router.get('/:courseId/module/:moduleId', userAuth, getModuleDetail) // done
 router.get('/assessment/:courseId', getCourseAssessment)  //done
@@ -22,8 +22,8 @@ router.post('/addchapter', userAuth, addChapter) //done
 router.post('/add-assessment', userAuth, addAssessment) //done
 router.post('/submit', userAuth, completeCourse) //done
 router.post('/approval', userAuth, coursePaymentApproval) //done
-router.post('/assessment/:courseId', userAuth, setCourseAssessmentScore)
-router.post('/update/:courseId/module/:moduleNumber/chapter/:chapterNumber', userAuth, updateChapterStatus)
-router.post('/generate-certificate/:courseId', userAuth, generateNFTCertificate)
+router.post('/assessment/:courseId', userAuth, setCourseAssessmentScore)//done
+router.post('/update/:courseId/module/:moduleNumber/chapter/:chapterNumber', userAuth, updateChapterStatus)//done
+router.post('/generate-certificate/:courseId', userAuth, generateNFTCertificate)// not from front-end-side
 
 module.exports = router
