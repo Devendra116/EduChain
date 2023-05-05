@@ -487,31 +487,31 @@ const addChapter = async (req, res) => {
 };
 
 const searchCourses = async (req, res) => {
-  try {
-    const tags = req.query.tags; // extract the "tags" query parameter value
-    const regex = new RegExp(tags.split(",").join("|"), "i"); // create a case-insensitive regex
-    const courses = await Course.find({ tags: { $regex: regex } }); // find courses matching the regex
-    const courseList = courses.map(course => ({
-      _id: course._id,
-      courseTitle: course.courseTitle,
-      courseBrief: course.courseBrief,
-      courseFee: course.courseFee,
-      noOfModules: course.noOfModules,
-      language: course.language,
-      timeRequired: course.timeRequired,
-      tags: course.tags,
-      rating: course.rating,
-      image: course.image,
-      instructorName: course.instructorId.firstName + ' ' + course.instructorId.lastName,
-      courseModules: course.courseModules,
-      courseAssessmentIds: course.courseAssessmentIds,
-      courseCompleted: course.courseCompleted,
-      courseApproved: course.courseApproved
-    }));
-    return res.send(courseList);
-  } catch (error) {
-    return res.status(400).send({ message: `Error searching courses ${error.message}` });
-  }
+    try {
+        const tags = req.query.tags; // extract the "tags" query parameter value
+        const regex = new RegExp(tags.split(",").join("|"), "i"); // create a case-insensitive regex
+        const courses = await Course.find({ tags: { $regex: regex } }); // find courses matching the regex
+        const courseList = courses.map(course => ({
+            _id: course._id,
+            courseTitle: course.courseTitle,
+            courseBrief: course.courseBrief,
+            courseFee: course.courseFee,
+            noOfModules: course.noOfModules,
+            language: course.language,
+            timeRequired: course.timeRequired,
+            tags: course.tags,
+            rating: course.rating,
+            image: course.image,
+            instructorName: course.instructorId.firstName + ' ' + course.instructorId.lastName,
+            courseModules: course.courseModules,
+            courseAssessmentIds: course.courseAssessmentIds,
+            courseCompleted: course.courseCompleted,
+            courseApproved: course.courseApproved
+        }));
+        return res.status(200).send({ status: true, courseList });
+    } catch (error) {
+        return res.status(400).send({ status: false, message:  `Error searching courses ${error.message}` });
+    }
 };
 
 // @desc    Add Chapters to Module
@@ -864,7 +864,7 @@ const setCourseAssessmentScore = async (req, res) => {
       return res
         .status(400)
         .send({
-          status: true,
+          status: false,
           message:
             'You cannot give Assessment again, Once the course is complted',
         });
@@ -891,7 +891,7 @@ const setCourseAssessmentScore = async (req, res) => {
       return res
         .status(200)
         .send({
-          status: true,
+          status: false,
           message: 'Previous Assessment Score was Higher than this',
           assessmentScore: count,
         });
