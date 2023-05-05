@@ -61,31 +61,6 @@ const getApprovalPendingNgos = async (req, res) => {
     }
 };
 
-// @desc    Authenticate a admin
-// @route   POST /admin/login
-// @access  Public
-const adminLogin = async (req, res) => {
-    try {
-        const { email, password } = req.body;
-        // Find the user
-        const admin = await Admin.findOne({ email });
-        if (!admin) return res.status(400).send({ status: false, message: 'Invalid credentials' });
-
-        // Compare the passwords
-        const isMatch = await bcrypt.compare(password, admin.password);
-        if (!isMatch) return res.status(400).send({ status: false, message: 'Invalid credentials' });
-
-        // Generate a token
-        const token = jwt.sign({ adminId: admin._id, userType: 'admin' }, process.env.JWT_SECRET, {
-            expiresIn: process.env.JWT_EXPIRE_TIME
-        });
-        console.log(admin._id)
-        // Return the token
-        return res.status(200).send({ status: true, message: 'Admin Log In Successful', token, userType: 'admin' });
-    } catch (error) {
-        return res.status(400).send({ status: false, message: `Error Logging In: ${error.message}` });
-    }
-};
 
 // @desc    Register a new Admin
 // @route   POST /admin/register
@@ -205,7 +180,6 @@ const deleteNgo = async (req, res) => {
 
 module.exports = {
     adminProfile,
-    adminLogin,
     registerAdmin,
     updateAdmin,
     getApprovedNgos,

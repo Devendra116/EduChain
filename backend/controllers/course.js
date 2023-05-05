@@ -201,11 +201,16 @@ const getCourseStatusDetail = async (req, res) => {
           model: 'CourseAssessment',
         },
       });
+     let NFTExplorerLink=''; 
+    if(process.env.NETWORK_ID=='testnet') NFTExplorerLink=`https://testnet.nearblocks.io/nft-token/${process.env.NFT_CONTRACT}/${courseData._id}` 
+    else NFTExplorerLink=`https://nearblocks.io/nft-token/${process.env.NFT_CONTRACT}/${courseData._id}`  
     const courseDataFormated = {
       courseId: courseData.courseId._id,
       courseStatus: courseData.isCompleted,
       courseTitle: courseData.courseId.courseTitle,
       assessmentScore: courseData.assessmentScore,
+      certificateUrl: courseData.certificateUrl,
+      NFTExplorerLink: NFTExplorerLink,
       assessmentList: courseData.courseId.courseAssessmentIds.map(
         (assessment) => ({
           question: assessment.question,

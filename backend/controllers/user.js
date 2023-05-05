@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const User = require('../models/user')
 const Admin = require('../models/admin')
+const NGO = require("../models/ngo")
 
 
 // @desc    Fetch User Profile Info
@@ -20,12 +21,13 @@ const userProfile = async (req, res) => {
 // @desc    Authenticate a user
 // @route   POST /user/login
 // @access  Public
-const userLogin = async (req, res) => {
+const commonLogin = async (req, res) => {
     try {
         const { email, password } = req.body;
         // Find the user
         const user = await User.findOne({ email });
         const admin = await Admin.findOne({ email });
+        const ngoAdmin = await NGO.findOne({ email });
 
         if (user) {
             // Compare the passwords
@@ -39,17 +41,31 @@ const userLogin = async (req, res) => {
             // Return the token
             return res.status(200).send({ status: true, message: 'User Log In Successfull', token, userType: 'user' });
         } else if (admin) {
-
             // Compare the passwords
             const isMatch = await bcrypt.compare(password, admin.password);
             if (!isMatch) return res.status(400).send({ status: false, message: 'Invalid Admin credentials' });
-    
+
             // Generate a token
             const token = jwt.sign({ adminId: admin._id, userType: 'admin' }, process.env.JWT_SECRET, {
                 expiresIn: process.env.JWT_EXPIRE_TIME
             });
             // Return the token
             return res.status(200).send({ status: true, message: 'Admin Log In Successful', token, userType: 'admin' });
+        } else if (ngoAdmin) {
+            // Compare the passwords
+            const isMatch = await bcrypt.compare(password, ngoAdmin.password);
+            if (!isMatch) return res.status(400).send({ status: false, message: 'Invalid credentials' });
+
+            if (!ngoAdmin.isApproved) return res.status(400).send({ status: false, message: 'Your Application is not Approved Yet, kindly try after some Time' });
+
+            // Generate a token
+            const token = jwt.sign({ ngoId: ngoAdmin._id, userType: 'ngoAdmin' }, process.env.JWT_SECRET, {
+                expiresIn: process.env.JWT_EXPIRE_TIME
+            });
+
+            // Return the token
+            return res.status(200).send({ status: true, message: "Admin Log In Successfull", token, userType: 'ngoAdmin' });
+
         } else {
             return res.status(400).send({ status: false, message: 'Data Not Found' });
         }
@@ -138,4 +154,4 @@ const deleteUser = async (req, res) => {
     }
 };
 
-module.exports = { userProfile, userLogin, registerUser, updateUser, deleteUser }
+module.exports = { userProfile, commonLogin, registerUser, updateUser, deleteUser }
