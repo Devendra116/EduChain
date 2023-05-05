@@ -201,16 +201,12 @@ const getCourseStatusDetail = async (req, res) => {
           model: 'CourseAssessment',
         },
       });
-     let NFTExplorerLink=''; 
-    if(process.env.NETWORK_ID=='testnet') NFTExplorerLink=`https://testnet.nearblocks.io/nft-token/${process.env.NFT_CONTRACT}/${courseData._id}` 
-    else NFTExplorerLink=`https://nearblocks.io/nft-token/${process.env.NFT_CONTRACT}/${courseData._id}`  
     const courseDataFormated = {
       courseId: courseData.courseId._id,
       courseStatus: courseData.isCompleted,
       courseTitle: courseData.courseId.courseTitle,
       assessmentScore: courseData.assessmentScore,
       certificateUrl: courseData.certificateUrl,
-      NFTExplorerLink: NFTExplorerLink,
       assessmentList: courseData.courseId.courseAssessmentIds.map(
         (assessment) => ({
           question: assessment.question,
@@ -657,10 +653,25 @@ const courseCompleted = async (req, res) => {
       return res
         .status(400)
         .send({ status: false, message: 'No Completed Course' });
-
+        let NFTExplorerLink=''; 
+        if(process.env.NETWORK_ID=='testnet') NFTExplorerLink=`https://testnet.nearblocks.io/nft-token/${process.env.NFT_CONTRACT}/` 
+        else NFTExplorerLink=`https://nearblocks.io/nft-token/${process.env.NFT_CONTRACT}/`  
+        const courseList = courses.map((course) => ({
+          _id: course._id,
+          isCompleted: course.isCompleted,
+          enrollmentDate: course.enrollmentDate,
+          courseId: course.courseId,
+          userId: course.userId,
+          courseModulesStatus: course.courseModulesStatus,
+          assessmentScore: course.assessmentScore,
+          completionDate: course.completionDate,
+          certificateUrl: course.certificateUrl,
+          NFTExplorerLink: NFTExplorerLink+`${course._id}`,
+        }));
+          
     return res
       .status(200)
-      .send({ status: true, message: 'Completed Courses', courses });
+      .send({ status: true, message: 'Completed Courses', courses:courseList });
   } catch (error) {
     return res
       .status(400)
