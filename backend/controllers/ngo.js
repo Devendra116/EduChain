@@ -70,7 +70,7 @@ const getNgoDetails = async (req, res) => {
 // @access  Private
 const generateToken = async (req, res) => {
     try {
-        const { ngoId } = req.body;
+        const { ngoId } = req;
         const uuidToken = v4();
         const ngo = await NgoModel.findById(ngoId)
         if (!ngo) {
@@ -84,7 +84,7 @@ const generateToken = async (req, res) => {
         if (0 > ngo.maxUserCount > 50) {
             return res.status(400).json({ status: false, "message": "maxUserCount should be greater than 0 and less than 50" })
         }
-        const query = { _id: req.body.ngoId };
+        const query = { _id: ngoId };
         const update = {
             $set: {
                 secretCode: uuidToken,
@@ -138,10 +138,10 @@ const registerNgoUser = async (req, res) => {
 // @access  Private
 const getNgoUsers = async (req, res) => {
     try {
-        const { ngoId } = req.body;
+        const { ngoId } = req;
         console.log("req", ngoId)
         const ngoUsers = await NgoModel.findOne({ ngoId }).populate("ngoUsersId")
-        res.status(200).json(ngoUsers)
+        res.status(200).send({ status: true, ngoUsers})
     } catch (error) {
         res.status(400).send({ status: false, message: `Error getting NGO Users ${error}` });
     }
