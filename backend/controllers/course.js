@@ -1,12 +1,12 @@
-require('dotenv').config()
-const Course = require('../models/course')
-const User = require('../models/user')
-const NGO = require('../models/ngo')
-const CourseModule = require('../models/courseModule')
-const CourseStatus = require('../models/courseStatus')
-const ModuleStatus = require('../models/moduleStatus')
-const CourseChapter = require('../models/courseChapter')
-const CourseAssessment = require('../models/courseAssessment')
+require('dotenv').config();
+const Course = require('../models/course');
+const User = require('../models/user');
+const NGO = require('../models/ngo');
+const CourseModule = require('../models/courseModule');
+const CourseStatus = require('../models/courseStatus');
+const ModuleStatus = require('../models/moduleStatus');
+const CourseChapter = require('../models/courseChapter');
+const CourseAssessment = require('../models/courseAssessment');
 const ObjectId = require('mongoose').Types.ObjectId;
 const { generateCertificate } = require('../utils/nftCertificateGenerator');
 const { mintNFT } = require('../controllers/nftContract');
@@ -103,12 +103,10 @@ const getCourseDetail = async (req, res) => {
       .status(200)
       .send({ status: true, message: 'Course Data', course: courseData });
   } catch (error) {
-    return res
-      .status(400)
-      .send({
-        status: false,
-        message: `Error getting course: ${error.message}`,
-      });
+    return res.status(400).send({
+      status: false,
+      message: `Error getting course: ${error.message}`,
+    });
   }
 };
 
@@ -130,12 +128,10 @@ const getModuleDetail = async (req, res) => {
       .status(200)
       .send({ status: true, message: 'Module Data', module: moduleData });
   } catch (error) {
-    return res
-      .status(400)
-      .send({
-        status: false,
-        message: `Error getting Module: ${error.message}`,
-      });
+    return res.status(400).send({
+      status: false,
+      message: `Error getting Module: ${error.message}`,
+    });
   }
 };
 
@@ -162,12 +158,10 @@ const getChapterDetail = async (req, res) => {
       .status(200)
       .send({ status: true, message: 'Module Data', chapter: chapterData });
   } catch (error) {
-    return res
-      .status(400)
-      .send({
-        status: false,
-        message: `Error getting Module: ${error.message}`,
-      });
+    return res.status(400).send({
+      status: false,
+      message: `Error getting Module: ${error.message}`,
+    });
   }
 };
 
@@ -233,20 +227,16 @@ const getCourseStatusDetail = async (req, res) => {
       return res
         .status(400)
         .send({ status: false, message: 'No course Found' });
-    return res
-      .status(200)
-      .send({
-        status: true,
-        message: 'Course Status Data',
-        course: courseDataFormated,
-      });
+    return res.status(200).send({
+      status: true,
+      message: 'Course Status Data',
+      course: courseDataFormated,
+    });
   } catch (error) {
-    return res
-      .status(400)
-      .send({
-        status: false,
-        message: `Error getting Course Status: ${error.message}`,
-      });
+    return res.status(400).send({
+      status: false,
+      message: `Error getting Course Status: ${error.message}`,
+    });
   }
 };
 
@@ -265,20 +255,16 @@ const getModuleStatusDetail = async (req, res) => {
       return res
         .status(400)
         .send({ status: false, message: 'No Module Status Found' });
-    return res
-      .status(200)
-      .send({
-        status: true,
-        message: 'Module Status Data',
-        module: moduleData,
-      });
+    return res.status(200).send({
+      status: true,
+      message: 'Module Status Data',
+      module: moduleData,
+    });
   } catch (error) {
-    return res
-      .status(400)
-      .send({
-        status: false,
-        message: `Error getting Module Status: ${error.message}`,
-      });
+    return res.status(400).send({
+      status: false,
+      message: `Error getting Module Status: ${error.message}`,
+    });
   }
 };
 
@@ -335,12 +321,10 @@ const createCourse = async (req, res) => {
       .status(200)
       .send({ status: true, message: 'Course Created', courseData: newCourse });
   } catch (error) {
-    return res
-      .status(400)
-      .send({
-        status: false,
-        message: `Error creatig course: ${error.message}`,
-      });
+    return res.status(400).send({
+      status: false,
+      message: `Error creatig course: ${error.message}`,
+    });
   }
 };
 
@@ -349,19 +333,12 @@ const createCourse = async (req, res) => {
 // @access  Private
 const addModule = async (req, res) => {
   try {
-    const {
-      moduleTitle,
-      moduleBrief,
-      moduleFee,
-      CourseId,
-      noOfChapters,
-      moduleNumber,
-    } = req.body;
+    const { moduleTitle, moduleBrief, CourseId, noOfChapters, moduleNumber } =
+      req.body;
 
     if (
       !moduleTitle ||
       !moduleBrief ||
-      !moduleFee ||
       !CourseId ||
       !noOfChapters ||
       !moduleNumber
@@ -375,18 +352,15 @@ const addModule = async (req, res) => {
         .status(400)
         .send({ status: false, message: 'Course Not found' });
     if (course.instructorId != req.userId)
-      return res
-        .status(400)
-        .send({
-          status: false,
-          message: "You can't modify Course, No Write Access",
-        });
+      return res.status(400).send({
+        status: false,
+        message: "You can't modify Course, No Write Access",
+      });
     console.log(course.instructorId);
     console.log(req.userId);
     const newModule = new CourseModule({
       moduleTitle,
       moduleBrief,
-      moduleFee,
       CourseId,
       noOfChapters,
       moduleNumber,
@@ -402,12 +376,10 @@ const addModule = async (req, res) => {
       .status(200)
       .send({ status: true, message: 'Module Added', courseData });
   } catch (error) {
-    return res
-      .status(400)
-      .send({
-        status: false,
-        message: `Error Adding Module: ${error.message}`,
-      });
+    return res.status(400).send({
+      status: false,
+      message: `Error Adding Module: ${error.message}`,
+    });
   }
 };
 
@@ -446,12 +418,10 @@ const addChapter = async (req, res) => {
         .send({ status: false, message: 'Module Not found' });
     let chapterExists = false;
     if (module.chapterIds && module.chapterIds.length >= module.noOfChapters)
-      return res
-        .status(400)
-        .send({
-          status: false,
-          message: 'You have already entered all chapters for this module',
-        });
+      return res.status(400).send({
+        status: false,
+        message: 'You have already entered all chapters for this module',
+      });
     if (module.chapterIds && module.chapterIds.length !== 0) {
       module.chapterIds.forEach((chapter) => {
         if (chapter.chapterSequence == chapterSequence) chapterExists = true;
@@ -473,41 +443,47 @@ const addChapter = async (req, res) => {
     });
     return res.status(200).send({ status: true, message: 'Chapter Added' });
   } catch (error) {
-    return res
-      .status(400)
-      .send({
-        status: false,
-        message: `Error Adding Chapter: ${error.message}`,
-      });
+    return res.status(400).send({
+      status: false,
+      message: `Error Adding Chapter: ${error.message}`,
+    });
   }
 };
 
 const searchCourses = async (req, res) => {
-    try {
-        const tags = req.query.tags; // extract the "tags" query parameter value
-        const regex = new RegExp(tags.split(",").join("|"), "i"); // create a case-insensitive regex
-        const courses = await Course.find({ tags: { $regex: regex } }); // find courses matching the regex
-        const courseList = courses.map(course => ({
-            _id: course._id,
-            courseTitle: course.courseTitle,
-            courseBrief: course.courseBrief,
-            courseFee: course.courseFee,
-            noOfModules: course.noOfModules,
-            language: course.language,
-            timeRequired: course.timeRequired,
-            tags: course.tags,
-            rating: course.rating,
-            image: course.image,
-            instructorName: course.instructorId.firstName + ' ' + course.instructorId.lastName,
-            courseModules: course.courseModules,
-            courseAssessmentIds: course.courseAssessmentIds,
-            courseCompleted: course.courseCompleted,
-            courseApproved: course.courseApproved
-        }));
-        return res.status(200).send({ status: true, courseList });
-    } catch (error) {
-        return res.status(400).send({ status: false, message:  `Error searching courses ${error.message}` });
-    }
+  try {
+    const tags = req.query.tags; // extract the "tags" query parameter value
+    const regex = new RegExp(tags.split(',').join('|'), 'i'); // create a case-insensitive regex
+    const courses = await Course.find({ tags: { $regex: regex } }).populate({
+      path: 'instructorId',
+      model: 'User',
+      select: 'firstName lastName',
+    }); // find courses matching the regex
+    const courseList = courses.map((course) => ({
+      _id: course._id,
+      courseTitle: course.courseTitle,
+      courseBrief: course.courseBrief,
+      courseFee: course.courseFee,
+      noOfModules: course.noOfModules,
+      language: course.language,
+      timeRequired: course.timeRequired,
+      tags: course.tags,
+      rating: course.rating,
+      image: course.image,
+      instructorName:
+        course.instructorId.firstName + ' ' + course.instructorId.lastName,
+      courseModules: course.courseModules,
+      courseAssessmentIds: course.courseAssessmentIds,
+      courseCompleted: course.courseCompleted,
+      courseApproved: course.courseApproved,
+    }));
+    return res.status(200).send({ status: true, courseList });
+  } catch (error) {
+    return res.status(400).send({
+      status: false,
+      message: `Error searching courses ${error.message}`,
+    });
+  }
 };
 
 // @desc    Add Chapters to Module
@@ -526,12 +502,10 @@ const addAssessment = async (req, res) => {
         .send({ status: false, message: 'Please Enter CourseId' });
     let courseDetail = await Course.findById(courseId);
     if (courseDetail.isCompleted)
-      return res
-        .status(400)
-        .send({
-          status: false,
-          message: 'Cannot add course once it is Completed',
-        });
+      return res.status(400).send({
+        status: false,
+        message: 'Cannot add course once it is Completed',
+      });
     const addAssessment = await CourseAssessment.insertMany(assessmentList);
     const assessmentListIds = [];
     addAssessment.forEach((assessment) => {
@@ -545,21 +519,17 @@ const addAssessment = async (req, res) => {
         courseAssessmentScoreThreshold: Math.round(totalAssessement * 0.75),
       },
     });
-    return res
-      .status(200)
-      .send({
-        status: true,
-        message: 'Assessment Added',
-        addAssessment,
-        assessmentListIds,
-      });
+    return res.status(200).send({
+      status: true,
+      message: 'Assessment Added',
+      addAssessment,
+      assessmentListIds,
+    });
   } catch (error) {
-    return res
-      .status(400)
-      .send({
-        status: false,
-        message: `Error Adding Assessment: ${error.message}`,
-      });
+    return res.status(400).send({
+      status: false,
+      message: `Error Adding Assessment: ${error.message}`,
+    });
   }
 };
 
@@ -583,12 +553,10 @@ const completeCourse = async (req, res) => {
 
     return res.status(200).send({ status: true, message: 'Course Submitted' });
   } catch (error) {
-    return res
-      .status(400)
-      .send({
-        status: false,
-        message: `Error Submitting Course: ${error.message}`,
-      });
+    return res.status(400).send({
+      status: false,
+      message: `Error Submitting Course: ${error.message}`,
+    });
   }
 };
 
@@ -621,21 +589,17 @@ const courseInProgress = async (req, res) => {
         .status(400)
         .send({ status: false, message: 'No In-Progress Course' });
 
-    return res
-      .status(200)
-      .send({
-        status: true,
-        message: 'In-Progress Courses',
-        courseList,
-        courses,
-      });
+    return res.status(200).send({
+      status: true,
+      message: 'In-Progress Courses',
+      courseList,
+      courses,
+    });
   } catch (error) {
-    return res
-      .status(400)
-      .send({
-        status: false,
-        message: `Error Getting In-Progress Courses: ${error.message}`,
-      });
+    return res.status(400).send({
+      status: false,
+      message: `Error Getting In-Progress Courses: ${error.message}`,
+    });
   }
 };
 
@@ -653,32 +617,34 @@ const courseCompleted = async (req, res) => {
       return res
         .status(400)
         .send({ status: false, message: 'No Completed Course' });
-        let NFTExplorerLink=''; 
-        if(process.env.NETWORK_ID=='testnet') NFTExplorerLink=`https://testnet.nearblocks.io/nft-token/${process.env.NFT_CONTRACT}/` 
-        else NFTExplorerLink=`https://nearblocks.io/nft-token/${process.env.NFT_CONTRACT}/`  
-        const courseList = courses.map((course) => ({
-          _id: course._id,
-          isCompleted: course.isCompleted,
-          enrollmentDate: course.enrollmentDate,
-          courseId: course.courseId,
-          userId: course.userId,
-          courseModulesStatus: course.courseModulesStatus,
-          assessmentScore: course.assessmentScore,
-          completionDate: course.completionDate,
-          certificateUrl: course.certificateUrl,
-          NFTExplorerLink: NFTExplorerLink+`${course._id}`,
-        }));
-          
-    return res
-      .status(200)
-      .send({ status: true, message: 'Completed Courses', courses:courseList });
+    let NFTExplorerLink = '';
+    if (process.env.NETWORK_ID == 'testnet')
+      NFTExplorerLink = `https://testnet.nearblocks.io/nft-token/${process.env.NFT_CONTRACT}/`;
+    else
+      NFTExplorerLink = `https://nearblocks.io/nft-token/${process.env.NFT_CONTRACT}/`;
+    const courseList = courses.map((course) => ({
+      _id: course._id,
+      isCompleted: course.isCompleted,
+      enrollmentDate: course.enrollmentDate,
+      courseId: course.courseId,
+      userId: course.userId,
+      courseModulesStatus: course.courseModulesStatus,
+      assessmentScore: course.assessmentScore,
+      completionDate: course.completionDate,
+      certificateUrl: course.certificateUrl,
+      NFTExplorerLink: NFTExplorerLink + `${course._id}`,
+    }));
+
+    return res.status(200).send({
+      status: true,
+      message: 'Completed Courses',
+      courses: courseList,
+    });
   } catch (error) {
-    return res
-      .status(400)
-      .send({
-        status: false,
-        message: `Error Getting Completed Courses: ${error.message}`,
-      });
+    return res.status(400).send({
+      status: false,
+      message: `Error Getting Completed Courses: ${error.message}`,
+    });
   }
 };
 
@@ -688,34 +654,39 @@ const courseCompleted = async (req, res) => {
 const courseUploaded = async (req, res) => {
   try {
     const { userId } = req;
-    const uploadedCourses = await Course.find({ instructorId: userId });
+    const uploadedCourses = await Course.find({
+      instructorId: userId,
+    }).populate({
+      path: 'instructorId',
+      model: 'User',
+      select: 'firstName lastName',
+    });
     if (!uploadedCourses.length)
       return res
         .status(400)
         .send({ status: false, message: 'No Course Uploaded' });
 
-    return res
-      .status(200)
-      .send({
-        status: true,
-        message: 'Uploaded Courses',
-        courses: uploadedCourses,
-      });
+    return res.status(200).send({
+      status: true,
+      message: 'Uploaded Courses',
+      courses: uploadedCourses,
+    });
   } catch (error) {
-    return res
-      .status(400)
-      .send({
-        status: false,
-        message: `Error Getting Uploaded Courses: ${error.message}`,
-      });
+    return res.status(400).send({
+      status: false,
+      message: `Error Getting Uploaded Courses: ${error.message}`,
+    });
   }
 };
 
 // @desc    Payment confirmation and course Enrollment
 // @route   POST /course/approval?transactionId
-// @access  Private 
+// @access  Private
 const coursePaymentApproval = async (req, res) => {
-  const txresponse = await provider.txStatus(req.query.transactionId, process.env.NETWORK_ID);
+  const txresponse = await provider.txStatus(
+    req.query.transactionId,
+    process.env.NETWORK_ID
+  );
   // let function_args = { "courses": { "64412ac4f2bcaf8f626b4c1b": ["1", "2"] } }
 
   const function_args = JSON.parse(
@@ -787,12 +758,10 @@ const coursePaymentApproval = async (req, res) => {
           { new: true }
         );
         if (!course_status)
-          return res
-            .status(400)
-            .send({
-              status: false,
-              message: `Error Updating CourseStatus: ${error.message}`,
-            });
+          return res.status(400).send({
+            status: false,
+            message: `Error Updating CourseStatus: ${error.message}`,
+          });
 
         return res
           .status(200)
@@ -806,24 +775,20 @@ const coursePaymentApproval = async (req, res) => {
           assessmentScore: 0,
         });
         if (!course_status)
-          return res
-            .status(400)
-            .send({
-              status: false,
-              message: `Error Creating CourseStatus: ${error.message}`,
-            });
+          return res.status(400).send({
+            status: false,
+            message: `Error Creating CourseStatus: ${error.message}`,
+          });
         return res
           .status(200)
           .send({ status: true, message: 'CourseStatus Created' });
       }
     }
   } catch (error) {
-    return res
-      .status(400)
-      .send({
-        status: false,
-        message: `Error Creating/Updating CourseStatus: ${error.message}`,
-      });
+    return res.status(400).send({
+      status: false,
+      message: `Error Creating/Updating CourseStatus: ${error.message}`,
+    });
   }
 };
 
@@ -842,20 +807,16 @@ const getCourseAssessment = async (req, res) => {
       select:
         '-_id -__v -createdAt -updatedAt -correctOption +question +optionA +optionB +optionC +optionD',
     });
-    return res
-      .status(200)
-      .send({
-        status: true,
-        message: 'Course Assessment',
-        courseAssessment: courseAssessment.courseAssessmentIds,
-      });
+    return res.status(200).send({
+      status: true,
+      message: 'Course Assessment',
+      courseAssessment: courseAssessment.courseAssessmentIds,
+    });
   } catch (error) {
-    return res
-      .status(400)
-      .send({
-        status: false,
-        message: `Error Getting Course Assessment: ${error.message}`,
-      });
+    return res.status(400).send({
+      status: false,
+      message: `Error Getting Course Assessment: ${error.message}`,
+    });
   }
 };
 
@@ -872,13 +833,11 @@ const setCourseAssessmentScore = async (req, res) => {
       userId,
     });
     if (updateCourseStatus.isCompleted)
-      return res
-        .status(400)
-        .send({
-          status: false,
-          message:
-            'You cannot give Assessment again, Once the course is complted',
-        });
+      return res.status(400).send({
+        status: false,
+        message:
+          'You cannot give Assessment again, Once the course is complted',
+      });
     const courseAssessment = await Course.findById(
       courseId,
       'courseAssessmentScoreThreshold courseAssessmentIds'
@@ -899,13 +858,11 @@ const setCourseAssessmentScore = async (req, res) => {
       updateCourseStatus.assessmentScore &&
       updateCourseStatus.assessmentScore > count
     )
-      return res
-        .status(200)
-        .send({
-          status: false,
-          message: 'Previous Assessment Score was Higher than this',
-          assessmentScore: count,
-        });
+      return res.status(200).send({
+        status: false,
+        message: 'Previous Assessment Score was Higher than this',
+        assessmentScore: count,
+      });
     if (
       updateCourseStatus.assessmentScore &&
       count >= courseAssessment.courseAssessmentScoreThreshold
@@ -915,20 +872,16 @@ const setCourseAssessmentScore = async (req, res) => {
     }
     updateCourseStatus.assessmentScore = count;
     await updateCourseStatus.save();
-    return res
-      .status(200)
-      .send({
-        status: true,
-        message: 'Course Assessment Score Updated',
-        assessmentScore: count,
-      });
+    return res.status(200).send({
+      status: true,
+      message: 'Course Assessment Score Updated',
+      assessmentScore: count,
+    });
   } catch (error) {
-    return res
-      .status(400)
-      .send({
-        status: false,
-        message: `Error Getting Course Assessment: ${error.message}`,
-      });
+    return res.status(400).send({
+      status: false,
+      message: `Error Getting Course Assessment: ${error.message}`,
+    });
   }
 };
 
@@ -1000,12 +953,10 @@ const updateChapterStatus = async (req, res) => {
       .status(200)
       .send({ status: true, message: 'Module Completed', moduleStatus: true });
   } catch (error) {
-    return res
-      .status(400)
-      .send({
-        status: false,
-        message: `Error Updating Chapter status: ${error.message}`,
-      });
+    return res.status(400).send({
+      status: false,
+      message: `Error Updating Chapter status: ${error.message}`,
+    });
   }
 };
 
@@ -1016,15 +967,21 @@ const generateNFTCertificate = async (req, res) => {
   try {
     const { courseId } = req.params;
     const { userId } = req;
-    const courseStatus = await CourseStatus.findOne({ userId, courseId }, 'certificateUrl')
+    const courseStatus = await CourseStatus.findOne(
+      { userId, courseId },
+      'certificateUrl'
+    )
       .populate('courseModulesStatus')
       .populate('userId', 'firstName lastName nearWallet');
-    console.log("courseStatus", courseStatus);
+    console.log('courseStatus', courseStatus);
     if (!courseStatus)
       return res
         .status(400)
         .send({ status: false, message: 'No Course Status found' });
-    if (courseStatus.certificateUrl) return res.status(400).send({ status: false, message: 'certificate Already Generated' });
+    if (courseStatus.certificateUrl)
+      return res
+        .status(400)
+        .send({ status: false, message: 'certificate Already Generated' });
     let isCourseComplete = true;
     courseStatus.courseModulesStatus.forEach((moduleStatus) => {
       if (!moduleStatus.isCompleted) isCourseComplete = false;
@@ -1041,12 +998,10 @@ const generateNFTCertificate = async (req, res) => {
     if (
       courseDetail.courseAssessmentScoreThreshold > courseStatus.assessmentScore
     )
-      return res
-        .status(400)
-        .send({
-          status: false,
-          message: 'Please Pass Assessement to Get Certificate',
-        });
+      return res.status(400).send({
+        status: false,
+        message: 'Please Pass Assessement to Get Certificate',
+      });
 
     courseStatus.isCompleted = true;
     courseStatus.completionDate = new Date();
@@ -1145,22 +1100,19 @@ const generateNFTCertificate = async (req, res) => {
       .status(200)
       .send({ status: true, message: 'Certificate Generated' });
   } catch (error) {
-    return res
-      .status(400)
-      .send({
-        status: false,
-        message: `Error Creating Certificate: ${error.message}`,
-      });
+    return res.status(400).send({
+      status: false,
+      message: `Error Creating Certificate: ${error.message}`,
+    });
   }
 };
 
-
 async function buyCourse(userId, courses) {
-  console.log("courses", courses)
-  console.log("userId", userId)
+  console.log('courses', courses);
+  console.log('userId', userId);
   const current_time = new Date();
   for (let course in courses) {
-    console.log("course", course);
+    console.log('course', course);
     const course_enrolled = await CourseStatus.findOne({
       courseId: new ObjectId(course),
       userId: userId,
@@ -1168,7 +1120,7 @@ async function buyCourse(userId, courses) {
     let module_list = [];
     for (let i = 0; i < courses[course].length; i++) {
       const module_id = courses[course][i];
-      console.log("module_id", module_id);
+      console.log('module_id', module_id);
       //below line stops execution when chapterIds is empty
       const module_info = await CourseModule.findOne({
         CourseId: new ObjectId(course),
@@ -1209,9 +1161,9 @@ async function buyCourse(userId, courses) {
         return {
           status: false,
           message: `Error Updating CourseStatus: ${error.message}`,
-        }
+        };
 
-      return { status: true, message: 'CourseStatus Updated' }
+      return { status: true, message: 'CourseStatus Updated' };
     } else {
       const course_status = await CourseStatus.create({
         enrollmentDate: current_time,
@@ -1224,18 +1176,20 @@ async function buyCourse(userId, courses) {
         return {
           status: false,
           message: `Error Creating CourseStatus: ${error.message}`,
-        }
-      return { status: true, message: 'CourseStatus Created' }
+        };
+      return { status: true, message: 'CourseStatus Created' };
     }
   }
 }
 
-
 // @desc    Payment confirmation and course Enrollment for NGO associates
 // @route   POST /course/ngo-approval?transactionId
-// @access  Private 
+// @access  Private
 const ngoCoursePaymentApproval = async (req, res) => {
-  const txresponse = await provider.txStatus(req.query.transactionId, process.env.NETWORK_ID);
+  const txresponse = await provider.txStatus(
+    req.query.transactionId,
+    process.env.NETWORK_ID
+  );
   // let function_args = { "courses": { "64412ac4f2bcaf8f626b4c1b": ["1", "2"] } }
 
   const function_args = JSON.parse(
@@ -1259,27 +1213,25 @@ const ngoCoursePaymentApproval = async (req, res) => {
   if (function_args.gift_to) user_account = function_args.gift_to;
   try {
     const ngo = await NGO.findOne({ nearWallet: user_account });
-    if (!ngo) return res.status(400).send({ status: false, message: 'NGO Not found' });
-    if (!ngo.ngoUsersId.length) return res.status(400).send({ status: false, message: 'No users to add course for' });
-    ngo.ngoUsersId.forEach(async (user) => {
-      const result = await buyCourse(user, function_args.courses)
-      if (!result.status) return res
+    if (!ngo)
+      return res.status(400).send({ status: false, message: 'NGO Not found' });
+    if (!ngo.ngoUsersId.length)
+      return res
         .status(400)
-        .send(result);
+        .send({ status: false, message: 'No users to add course for' });
+    ngo.ngoUsersId.forEach(async (user) => {
+      const result = await buyCourse(user, function_args.courses);
+      if (!result.status) return res.status(400).send(result);
     });
-    return res
-      .status(200)
-      .send({
-        status: true,
-        message: "Course Approval Successful",
-      });
+    return res.status(200).send({
+      status: true,
+      message: 'Course Approval Successful',
+    });
   } catch (error) {
-    return res
-      .status(400)
-      .send({
-        status: false,
-        message: `Error Creating/Updating CourseStatus: ${error.message}`,
-      });
+    return res.status(400).send({
+      status: false,
+      message: `Error Creating/Updating CourseStatus: ${error.message}`,
+    });
   }
 };
 module.exports = {
@@ -1303,5 +1255,5 @@ module.exports = {
   updateChapterStatus,
   courseUploaded,
   generateNFTCertificate,
-  ngoCoursePaymentApproval
+  ngoCoursePaymentApproval,
 };
