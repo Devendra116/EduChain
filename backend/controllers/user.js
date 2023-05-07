@@ -109,7 +109,7 @@ const registerUser = async (req, res) => {
         <h1>EduChain</h1>
         <p>Hello, Thanks For Registering On Our Website.</p>
         <p>Kindly Verify Your Email ID By Clicking On This Link : </p>
-        <a href = "http://${req.headers.host}/verify-account?token=${newUser.verificationToken}">Verify Your Account</a>
+        <a href = "http://${req.headers.host}/verify?token=${newUser.verificationToken}">Verify Your Account</a>
         `;
 
         const mailOptions = {
