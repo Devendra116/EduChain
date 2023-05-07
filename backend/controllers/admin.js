@@ -3,6 +3,8 @@ const jwt = require('jsonwebtoken')
 const Admin = require('../models/admin')
 const NGO = require('../models/ngo')
 const Users = require('../models/user')
+const {sendEmail} = require('../utils/sendEmail')
+require('dotenv').config()
 
 // @desc    Fetch admin Profile Info
 // @route   GET /admin/profile
@@ -166,6 +168,24 @@ const changeNgoStatus = async (req, res) => {
             ngoData.isApproved = false;
         } else {
             ngoData.isApproved = true;
+            const subject = `EduChain Approval`;
+            const message = `
+            <div style="margin:auto;text-align:center;">
+            <h4>Educhain Approval</h4>
+            <p>You are now approved to use Educhain. Please login to Move ahead</p>
+           </div>
+            `;
+
+            // send email
+            const mailOptions = {
+                from: process.env.EMAIL,
+                to: ngoData.email,
+                subject,
+                html: message,
+            };
+
+            await sendEmail(mailOptions);
+
         }  // Save the updates
         await ngoData.save();
         return res.status(200).send({ status: true, message: 'NGO Updated Successfully' });
