@@ -2,14 +2,14 @@ const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const Admin = require('../models/admin')
 const NGO = require('../models/ngo')
-
+const Users = require('../models/user')
 
 // @desc    Fetch admin Profile Info
 // @route   GET /admin/profile
 // @access  Public
 const adminProfile = async (req, res) => {
     try {
-        const admin = await Admin.findById(req.ngoId);
+        const admin = await Admin.findById(req.adminId);
         if (!admin) return res.status(400).send({ status: false, message: 'No Admin found' });
         return res.status(200).send({ status: true, message: 'Admin Data', admin });
     } catch (error) {
@@ -56,6 +56,19 @@ const getApprovalPendingNgos = async (req, res) => {
             isApproved: ngo.isApproved
         }));
         return res.status(200).send({ status: true, message: 'Approval Pending NGO Data', ngoList: formatedNgoList });
+    } catch (error) {
+        return res.status(400).send({ status: false, message: `Error Logging In: ${error.message}` });
+    }
+};
+
+// @desc    Fetch users present on our platform
+// @route   GET /admin/users
+// @access  Private
+const users = async (req, res) => {
+    try {
+        const users = await Users.find({});
+        if (!users) return res.status(400).send({ status: false, message: 'No User Present' });
+        return res.status(200).send({ status: true, message: 'Users Data', users });
     } catch (error) {
         return res.status(400).send({ status: false, message: `Error Logging In: ${error.message}` });
     }
@@ -186,5 +199,6 @@ module.exports = {
     deleteAdmin,
     getApprovalPendingNgos,
     changeNgoStatus,
-    deleteNgo
+    deleteNgo,
+    users
 }
