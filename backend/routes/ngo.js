@@ -1,11 +1,12 @@
 const express = require('express')
 const router = express.Router()
-const { getNgoDetail, getNgoDetails, generateToken, registerNgo, registerNgoUser, getNgoUsers } = require('../controllers/ngo')
+const { getNgoDetail, getNgoDetails, generateToken, registerNgo, registerNgoUser, getNgoUsers, verifyNgo } = require('../controllers/ngo')
 const { ngoAuth } = require('../middleware/ngoAuth')
 
 router.get('/all', getNgoDetails) // not needed
-router.get('/users',ngoAuth, getNgoUsers) // done
+router.get('/users', ngoAuth, getNgoUsers) // done
 router.get('/', ngoAuth, getNgoDetail)
+router.get('/verify', verifyNgo)
 
 router.post('/generate-token', ngoAuth, generateToken) // done
 router.post('/register-user', registerNgoUser) // done

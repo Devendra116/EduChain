@@ -15,6 +15,8 @@ const ngoSchema = mongoose.Schema({
     maxUserCount: { type: Number },
     joinedUserCount: { type: Number, default: 0 },
     isApproved: { type: Boolean, default: false },
+    isVerified: { type: Boolean, default: false },
+    verificationToken: { type: String }
 }, {
     timestamps: true
 })
