@@ -140,7 +140,7 @@ const getNgoUsers = async (req, res) => {
     try {
         const { ngoId } = req;
         console.log("req", ngoId)
-        const ngoUsers = await NgoModel.findOne({ ngoId }).populate("ngoUsersId")
+        const ngoUsers = await NgoModel.findById(ngoId).populate("ngoUsersId")
         res.status(200).send({ status: true, ngoUsers})
     } catch (error) {
         res.status(400).send({ status: false, message: `Error getting NGO Users ${error}` });
