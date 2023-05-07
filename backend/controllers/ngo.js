@@ -117,7 +117,7 @@ const registerNgoUser = async (req, res) => {
 
         const createNgoUser = new UserModel({
             email,
-            ngo: ngo._id
+            ngo: ngo.name
         });
 
         // Hash the password

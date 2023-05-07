@@ -864,7 +864,7 @@ const setCourseAssessmentScore = async (req, res) => {
         assessmentScore: count,
       });
     if (
-      updateCourseStatus.assessmentScore &&
+      count &&
       count >= courseAssessment.courseAssessmentScoreThreshold
     ) {
       updateCourseStatus.isCompleted = true;
