@@ -104,7 +104,7 @@ const registerUser = async (req, res) => {
 
         // Save the new user
         await newUser.save();
-        const subject = `EduChain - Verify Your Account`;
+        const subject = `Verify Your Account | EduChain`;
         const message = `
         <h1>EduChain</h1>
         <p>Hello, Thanks For Registering On Our Website.</p>

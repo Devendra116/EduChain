@@ -168,12 +168,11 @@ const changeNgoStatus = async (req, res) => {
             ngoData.isApproved = false;
         } else {
             ngoData.isApproved = true;
-            const subject = `EduChain Approval`;
+            const subject = `NGO Approved | EduChain`;
             const message = `
-            <div style="margin:auto;text-align:center;">
-            <h4>Educhain Approval</h4>
-            <p>You are now approved to use Educhain. Please login to Move ahead</p>
-           </div>
+            <h1>Educhain</h1>
+            <p>Hello, Your NGO Is Now Approved To Use Educhain. Kindly Login By Clicking On This Link : </p>
+            <a href = "http://localhost:3000/login">Login Now</a>
             `;
 
             // send email

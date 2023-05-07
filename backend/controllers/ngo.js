@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken')
 const v4 = require("uuid").v4
 const bcrypt = require('bcryptjs')
 const {sendEmail} = require('../utils/sendEmail')
-
+const crypto = require('crypto')
 
 // @desc    Register a new NGO
 // @route   POST /ngo/register
@@ -41,7 +41,7 @@ const registerNgo = async (req, res) => {
         <h1>EduChain</h1>
         <p>Hello, Thanks For Registering On Our Website.</p>
         <p>Kindly Verify Your Email ID By Clicking On This Link : </p>
-        <a href = "http://${req.headers.host}/verify?token=${newUser.verificationToken}">Verify Your Account</a>
+        <a href = "http://localhost:3000?ngotoken=${newNgo.verificationToken}">Verify Your Account</a>
         `;
 
         const mailOptions = {
@@ -59,11 +59,11 @@ const registerNgo = async (req, res) => {
 };
 
 // @desc    Verify the NGO  
-// @route   GET /ngo/verify
+// @route   POST /ngo/verify
 // @access  Public
 const verifyNgo = async (req, res) => {
     try {
-        const ngo = await NgoModel.findOne({ verificationToken: req.query.token });
+        const ngo = await NgoModel.findOne({ verificationToken: req.body.token });
         if (!ngo) return res.status(400).send({ status: false, message: 'Invalid Token' });
         ngo.verificationToken = null;
         ngo.isVerified = true;
