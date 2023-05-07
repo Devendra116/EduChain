@@ -125,7 +125,7 @@ const registerNgoUser = async (req, res) => {
         createNgoUser.password = await bcrypt.hash(password, salt);
 
         await createNgoUser.save();
-        await NgoModel.findOneAndUpdate({ ngo }, { $inc: { joinedUserCount: 1 }, $push: { ngoUsersId: createNgoUser._id } })
+        await NgoModel.findByIdAndUpdate(ngo._id, { $inc: { joinedUserCount: 1 }, $push: { ngoUsersId: createNgoUser._id } })
 
         res.status(201).send({ status: true, message: 'User created successfully' });
     } catch (error) {
@@ -140,7 +140,7 @@ const getNgoUsers = async (req, res) => {
     try {
         const { ngoId } = req.body;
         console.log("req", ngoId)
-        const ngoUsers = await NgoModel.findOne({ ngoId }).populate("ngoUsersId")
+        const ngoUsers = await NgoModel.findById(ngoId).populate("ngoUsersId")
         res.status(200).json(ngoUsers)
     } catch (error) {
         res.status(400).send({ status: false, message: `Error getting NGO Users ${error}` });
