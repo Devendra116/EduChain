@@ -109,7 +109,7 @@ const registerUser = async (req, res) => {
         <h1>EduChain</h1>
         <p>Hello, Thanks For Registering On Our Website.</p>
         <p>Kindly Verify Your Email ID By Clicking On This Link : </p>
-        <a href = "http://${req.headers.host}/verify?token=${newUser.verificationToken}">Verify Your Account</a>
+        <a href = "http://localhost:3000?token=${newUser.verificationToken}">Verify Your Account</a>
         `;
 
         const mailOptions = {
@@ -128,11 +128,11 @@ const registerUser = async (req, res) => {
 
 
 // @desc    Verify the user 
-// @route   GET /user/verify
+// @route   POST /user/verify
 // @access  Public
 const verifyUser = async (req, res) => {
     try {
-        const user = await User.findOne({ verificationToken: req.query.token });
+        const user = await User.findOne({ verificationToken: req.body.token });
         if (!user) return res.status(400).send({ status: false, message: 'Invalid Token' });
         user.verificationToken = null;
         user.isVerified = true;
