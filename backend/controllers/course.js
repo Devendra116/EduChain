@@ -630,6 +630,7 @@ const courseInProgress = async (req, res) => {
   }
 };
 
+
 // @desc    Fetch All the courses that are completed by user
 // @route   GET /course/course-completed
 // @access  Private
@@ -639,16 +640,7 @@ const courseCompleted = async (req, res) => {
     const courses = await CourseStatus.find({
       userId,
       isCompleted: true,
-    })
-      .populate({
-        path: 'courseId',
-        model: 'Course',
-        populate: {
-          path: 'instructorId',
-          model: 'User',
-          select: 'firstName lastName',
-        },
-      });;
+    }).populate('courseId');
     if (!courses.length)
       return res
         .status(400)
@@ -669,7 +661,6 @@ const courseCompleted = async (req, res) => {
       completionDate: course.completionDate,
       certificateUrl: course.certificateUrl,
       NFTExplorerLink: NFTExplorerLink + `${course._id}`,
-      instructorId: `${course.courseId.instructorId.firstName} ${course.courseId.instructorId.lastName}`
     }));
 
     return res.status(200).send({
