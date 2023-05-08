@@ -4,7 +4,8 @@ const UserModel = require("../models/user")
 const jwt = require('jsonwebtoken')
 const v4 = require("uuid").v4
 const bcrypt = require('bcryptjs')
-
+const {sendEmail} = require('../utils/sendEmail')
+const crypto = require('crypto')
 
 // @desc    Register a new NGO
 // @route   POST /ngo/register
@@ -26,7 +27,8 @@ const registerNgo = async (req, res) => {
             courseEnrolled: [],
             joinedUserCount: 0,
             maxUserCount: 50,
-            documentUrl
+            documentUrl,
+            verificationToken: crypto.randomBytes(64).toString('hex'),
         });
 
         // Hash the password
@@ -34,10 +36,41 @@ const registerNgo = async (req, res) => {
         newNgo.password = await bcrypt.hash(password, salt);
 
         await newNgo.save();
+        const subject = `EduChain - Verify Your Account`;
+        const message = `
+        <h1>EduChain</h1>
+        <p>Hello, Thanks For Registering On Our Website.</p>
+        <p>Kindly Verify Your Email ID By Clicking On This Link : </p>
+        <a href = "http://localhost:3000?ngotoken=${newNgo.verificationToken}">Verify Your Account</a>
+        `;
+
+        const mailOptions = {
+            from: process.env.EMAIL,
+            to: email,
+            subject,
+            html: message,
+        };
+        await sendEmail(mailOptions)
 
         return res.status(201).send({ status: true, message: 'NGO created successfully' });
     } catch (error) {
         return res.status(400).send({ status: false, message: `Error creating NGO ${error}` });
+    }
+};
+
+// @desc    Verify the NGO  
+// @route   POST /ngo/verify
+// @access  Public
+const verifyNgo = async (req, res) => {
+    try {
+        const ngo = await NgoModel.findOne({ verificationToken: req.body.token });
+        if (!ngo) return res.status(400).send({ status: false, message: 'Invalid Token' });
+        ngo.verificationToken = null;
+        ngo.isVerified = true;
+        await ngo.save();
+        return res.status(200).send({ status: true, message: 'Ngo Verified' });
+    } catch (error) {
+        return res.status(400).send({ status: false, message: `Error Verifying Ngo: ${error.message}` });
     }
 };
 
@@ -141,10 +174,10 @@ const getNgoUsers = async (req, res) => {
         const { ngoId } = req;
         console.log("req", ngoId)
         const ngoUsers = await NgoModel.findById(ngoId).populate("ngoUsersId")
-        res.status(200).send({ status: true, ngoUsers})
+        res.status(200).send({ status: true, ngoUsers })
     } catch (error) {
         res.status(400).send({ status: false, message: `Error getting NGO Users ${error}` });
     }
 }
 
-module.exports = { getNgoDetail, getNgoDetails, generateToken, registerNgo, registerNgoUser, getNgoUsers }
+module.exports = { getNgoDetail, getNgoDetails, generateToken, registerNgo, registerNgoUser, getNgoUsers, verifyNgo }

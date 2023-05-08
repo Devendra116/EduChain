@@ -12,7 +12,9 @@ const userSchema = mongoose.Schema({
     userCreatedCourses: [{ type: mongoose.Types.ObjectId, ref: 'Course' }],
     qualification: { type: String },
     profileImg: { type: String },
-    userBio: { type: String }
+    userBio: { type: String },
+    isVerified: { type: Boolean, default: false },
+    verificationToken: { type: String }
 }, {
     timestamps: true
 })

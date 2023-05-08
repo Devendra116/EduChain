@@ -10,7 +10,9 @@ const CourseAssessment = require('../models/courseAssessment');
 const ObjectId = require('mongoose').Types.ObjectId;
 const { generateCertificate } = require('../utils/nftCertificateGenerator');
 const { mintNFT } = require('../controllers/nftContract');
-// demonstrates how to get a transaction status
+const { addCourseToContract } = require('../controllers/contractFunction');
+const nearAPI = require('near-api-js');
+const { utils: { format: { formatNearAmount } } } = nearAPI;
 
 const { providers } = require('near-api-js');
 const { default: mongoose } = require('mongoose');
@@ -21,6 +23,11 @@ const provider = new providers.JsonRpcProvider(
   'https://archival-rpc.testnet.near.org'
 );
 
+function calculateModuleCost(courseFee, noOfModules) {
+  const moduleFeeInNear = courseFee / noOfModules;
+  const moduleFeeInYoctoNear = nearAPI.utils.format.parseNearAmount(`${moduleFeeInNear}`);
+  return moduleFeeInYoctoNear;
+}
 // @desc    Get all courses
 // @route   GET /course
 // @access  Public
@@ -543,13 +550,33 @@ const completeCourse = async (req, res) => {
       return res
         .status(400)
         .send({ status: false, message: 'Please Enter CourseId' });
-    const course = await Course.findByIdAndUpdate(courseId, {
-      courseCompleted: true,
-    });
+    const course = await Course.findById(courseId)
+      .populate('instructorId', 'nearWallet')
+      .populate({
+        path: 'courseModules',
+        model: 'CourseModule',
+        select: 'moduleFee',
+      });
     if (!course)
       return res
         .status(400)
         .send({ status: false, message: 'Please Check CourseId' });
+    const courseData = {
+      course_id: course._id.toString(),
+      course_title: course.courseTitle,
+      instructor: course.instructorId.nearWallet,
+      modules: course.courseModules.reduce((acc, module) => {
+        acc[module._id.toString()] = calculateModuleCost(course.courseFee, course.noOfModules).toString();
+        return acc;
+      }, {})
+    }
+    
+    console.log(courseData)
+    const addCourse = await addCourseToContract(courseData)
+    console.log(addCourse)
+
+    course.courseCompleted=true
+    await course.save()
 
     return res.status(200).send({ status: true, message: 'Course Submitted' });
   } catch (error) {

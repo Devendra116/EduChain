@@ -31,11 +31,11 @@ const mintNFT = async (nft) => {
         )
         return result
     } catch (error) {
-        return {error: error.message }
+        return { error: error.message }
     }
 }
 
- 
+
 async function isNFTMinted(nft_token_id) {
     try {
         const near = await connect(config);
@@ -44,12 +44,12 @@ async function isNFTMinted(nft_token_id) {
             finality: "final",
             account_id: ACCOUNT_ID,
             method_name: "nft_token",
-            args_base64:  Buffer.from(JSON.stringify({ "token_id": nft_token_id })).toString('base64'),
-          });
-          const decodedResult=Buffer.from(response.result, 'base64').toString('utf8')
+            args_base64: Buffer.from(JSON.stringify({ "token_id": nft_token_id })).toString('base64'),
+        });
+        const decodedResult = Buffer.from(response.result, 'base64').toString('utf8')
         console.log(typeof decodedResult)
         if (decodedResult != 'null') return true
-        else return false 
+        else return false
     } catch (error) {
 
         console.log(`Error: ${error}`)

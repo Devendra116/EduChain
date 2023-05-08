@@ -3,6 +3,8 @@ const jwt = require('jsonwebtoken')
 const User = require('../models/user')
 const Admin = require('../models/admin')
 const NGO = require("../models/ngo")
+const crypto = require('crypto')
+const { sendEmail } = require('../utils/sendEmail')
 
 
 // @desc    Fetch User Profile Info
@@ -30,6 +32,8 @@ const commonLogin = async (req, res) => {
         const ngoAdmin = await NGO.findOne({ email });
 
         if (user) {
+            if (!user.isVerified) return res.status(400).send({ status: false, message: 'Please Verify your Email, And Login Afterwards' });
+
             // Compare the passwords
             const isMatch = await bcrypt.compare(password, user.password);
             if (!isMatch) return res.status(400).send({ status: false, message: 'Invalid User credentials' });
@@ -38,6 +42,7 @@ const commonLogin = async (req, res) => {
             const token = jwt.sign({ userId: user._id, userType: 'user' }, process.env.JWT_SECRET, {
                 expiresIn: process.env.JWT_EXPIRE_TIME
             });
+
             // Return the token
             return res.status(200).send({ status: true, message: 'User Log In Successfull', token, userType: 'user' });
         } else if (admin) {
@@ -53,6 +58,8 @@ const commonLogin = async (req, res) => {
             return res.status(200).send({ status: true, message: 'Admin Log In Successful', token, userType: 'admin' });
         } else if (ngoAdmin) {
             // Compare the passwords
+            if (!ngoAdmin.isVerified) return res.status(400).send({ status: false, message: 'Please Verify your Email, And Login Afterwards' });
+
             const isMatch = await bcrypt.compare(password, ngoAdmin.password);
             if (!isMatch) return res.status(400).send({ status: false, message: 'Invalid credentials' });
 
@@ -91,15 +98,48 @@ const registerUser = async (req, res) => {
         // Create the new user
         const newUser = new User({
             email,
-            password: hashedPassword
+            password: hashedPassword,
+            verificationToken: crypto.randomBytes(64).toString('hex'),
         });
 
         // Save the new user
         await newUser.save();
+        const subject = `Verify Your Account | EduChain`;
+        const message = `
+        <h1>EduChain</h1>
+        <p>Hello, Thanks For Registering On Our Website.</p>
+        <p>Kindly Verify Your Email ID By Clicking On This Link : </p>
+        <a href = "http://localhost:3000?token=${newUser.verificationToken}">Verify Your Account</a>
+        `;
+
+        const mailOptions = {
+            from: process.env.EMAIL,
+            to: email,
+            subject,
+            html: message,
+        };
+        await sendEmail(mailOptions)
 
         return res.status(201).send({ status: true, message: 'User created successfully' });
     } catch (error) {
         return res.status(400).send({ status: false, message: `Error creating user ${error.message}` });
+    }
+};
+
+
+// @desc    Verify the user 
+// @route   POST /user/verify
+// @access  Public
+const verifyUser = async (req, res) => {
+    try {
+        const user = await User.findOne({ verificationToken: req.body.token });
+        if (!user) return res.status(400).send({ status: false, message: 'Invalid Token' });
+        user.verificationToken = null;
+        user.isVerified = true;
+        await user.save();
+        return res.status(200).send({ status: true, message: 'User Verified' });
+    } catch (error) {
+        return res.status(400).send({ status: false, message: `Error Verifying User: ${error.message}` });
     }
 };
 
@@ -154,4 +194,4 @@ const deleteUser = async (req, res) => {
     }
 };
 
-module.exports = { userProfile, commonLogin, registerUser, updateUser, deleteUser }
+module.exports = { userProfile, commonLogin, registerUser, updateUser, deleteUser, verifyUser }
