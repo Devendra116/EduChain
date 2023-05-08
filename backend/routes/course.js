@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const { getCourses, addModule, addChapter, searchCourses, courseInProgress, courseUploaded, generateNFTCertificate, updateChapterStatus, setCourseAssessmentScore, getCourseAssessment, getModuleStatusDetail, getCourseStatusDetail, courseCompleted, completeCourse, addAssessment, getModuleDetail, getChapterDetail, createCourse, getCourseDetail, coursePaymentApproval,ngoCoursePaymentApproval } = require('../controllers/course')
 const { userAuth } = require('../middleware/userAuth')
+const { ngoAuth } = require('../middleware/ngoAuth')
 
 router.get('/', getCourses)//done
 router.get('/search', searchCourses) //done
@@ -22,7 +23,7 @@ router.post('/addchapter', userAuth, addChapter) //done
 router.post('/add-assessment', userAuth, addAssessment) //done
 router.post('/submit', userAuth, completeCourse) //done
 router.post('/approval', userAuth, coursePaymentApproval) //done
-router.post('/ngo-approval', ngoCoursePaymentApproval)  // add userauth 
+router.post('/ngo-approval',ngoAuth,ngoCoursePaymentApproval)  // add userauth 
 router.post('/assessment/:courseId', userAuth, setCourseAssessmentScore)//done
 router.post('/update/:courseId/module/:moduleNumber/chapter/:chapterNumber', userAuth, updateChapterStatus)//done
 router.post('/generate-certificate/:courseId', userAuth, generateNFTCertificate)//done
