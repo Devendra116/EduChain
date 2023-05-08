@@ -639,8 +639,7 @@ const courseCompleted = async (req, res) => {
     const courses = await CourseStatus.find({
       userId,
       isCompleted: true,
-    })
-    .populate({
+    }).populate({
       path: 'courseId',
       model: 'Course',
       populate: {
@@ -648,7 +647,7 @@ const courseCompleted = async (req, res) => {
         model: 'User',
         select: 'firstName lastName',
       },
-    });;
+    });
     if (!courses.length)
       return res
         .status(400)
@@ -676,6 +675,7 @@ const courseCompleted = async (req, res) => {
       status: true,
       message: 'Completed Courses',
       courses: courseList,
+      courses
     });
   } catch (error) {
     return res.status(400).send({
