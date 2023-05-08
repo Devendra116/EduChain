@@ -150,14 +150,31 @@ const registerNgoUser = async (req, res) => {
 
         const createNgoUser = new UserModel({
             email,
-            ngo: ngo.name
+            ngo: ngo.name,
+            verificationToken: crypto.randomBytes(64).toString('hex'),
         });
+        
 
         // Hash the password
         const salt = await bcrypt.genSalt(10);
         createNgoUser.password = await bcrypt.hash(password, salt);
 
         await createNgoUser.save();
+        const subject = `EduChain - Verify Your Account`;
+        const message = `
+        <h1>EduChain</h1>
+        <p>Hello, Thanks For Registering On Our Website.</p>
+        <p>Kindly Verify Your Email ID By Clicking On This Link : </p>
+        <a href = "http://localhost:3000?token=${createNgoUser.verificationToken}">Verify Your Account</a>
+        `;
+
+        const mailOptions = {
+            from: process.env.EMAIL,
+            to: email,
+            subject,
+            html: message,
+        };
+        await sendEmail(mailOptions)
         await NgoModel.findByIdAndUpdate(ngo._id, { $inc: { joinedUserCount: 1 }, $push: { ngoUsersId: createNgoUser._id } })
 
         res.status(201).send({ status: true, message: 'User created successfully' });
