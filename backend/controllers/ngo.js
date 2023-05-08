@@ -47,7 +47,7 @@ const registerNgo = async (req, res) => {
 const getNgoDetail = async (req, res) => {
     try {
         const ngo = await NgoModel.findById(req.ngoId)
-        res.status(200).json(ngo)
+        res.status(200).send({ status: true, ngo});
     } catch (error) {
         res.status(400).send({ status: false, message: `Error getting NGO detail ${error}` });
     }

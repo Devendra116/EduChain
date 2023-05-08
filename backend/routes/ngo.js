@@ -5,7 +5,7 @@ const { ngoAuth } = require('../middleware/ngoAuth')
 
 router.get('/all', getNgoDetails) // not needed
 router.get('/users',ngoAuth, getNgoUsers) // done
-router.get('/', ngoAuth, getNgoDetail)
+router.get('/', ngoAuth, getNgoDetail) // done
 
 router.post('/generate-token', ngoAuth, generateToken) // done
 router.post('/register-user', registerNgoUser) // done

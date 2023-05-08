@@ -25,6 +25,6 @@ router.post('/approval', userAuth, coursePaymentApproval) //done
 router.post('/ngo-approval', ngoCoursePaymentApproval)  // add userauth 
 router.post('/assessment/:courseId', userAuth, setCourseAssessmentScore)//done
 router.post('/update/:courseId/module/:moduleNumber/chapter/:chapterNumber', userAuth, updateChapterStatus)//done
-router.post('/generate-certificate/:courseId', userAuth, generateNFTCertificate)// not from front-end-side
+router.post('/generate-certificate/:courseId', userAuth, generateNFTCertificate)//done
 
 module.exports = router
