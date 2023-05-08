@@ -33,7 +33,7 @@ function calculateModuleCost(courseFee, noOfModules) {
 // @access  Public
 const getCourses = async (req, res) => {
   try {
-    const courses = await Course.find({ courseCompleted: true }).populate('instructorId');
+    const courses = await Course.find({courseCompleted:true}).populate('instructorId');
 
     const courseList = courses.map((course) => ({
       _id: course._id,
@@ -570,12 +570,12 @@ const completeCourse = async (req, res) => {
         return acc;
       }, {})
     }
-
+    
     console.log(courseData)
     const addCourse = await addCourseToContract(courseData)
     console.log(addCourse)
 
-    course.courseCompleted = true
+    course.courseCompleted=true
     await course.save()
 
     return res.status(200).send({ status: true, message: 'Course Submitted' });
@@ -630,7 +630,6 @@ const courseInProgress = async (req, res) => {
   }
 };
 
-
 // @desc    Fetch All the courses that are completed by user
 // @route   GET /course/course-completed
 // @access  Private
@@ -640,7 +639,16 @@ const courseCompleted = async (req, res) => {
     const courses = await CourseStatus.find({
       userId,
       isCompleted: true,
-    }).populate('courseId');
+    })
+    .populate({
+      path: 'courseId',
+      model: 'Course',
+      populate: {
+        path: 'instructorId',
+        model: 'User',
+        select: 'firstName lastName',
+      },
+    });;
     if (!courses.length)
       return res
         .status(400)
@@ -661,6 +669,7 @@ const courseCompleted = async (req, res) => {
       completionDate: course.completionDate,
       certificateUrl: course.certificateUrl,
       NFTExplorerLink: NFTExplorerLink + `${course._id}`,
+      instructorId : `${course.courseId.instructorId.firstName} ${course.courseId.instructorId.lastName}`
     }));
 
     return res.status(200).send({
@@ -1249,20 +1258,18 @@ const ngoCoursePaymentApproval = async (req, res) => {
         .send({ status: false, message: 'No users to add course for' });
     ngo.ngoUsersId.forEach(async (user) => {
       const result = await buyCourse(user, function_args.courses);
-
       if (!result.status) return res.status(400).send(result);
     });
-    const updateNgo = await NGO.findByIdAndUpdate(ngo._id, { $push:{ ngoCourseEnrolled: Object.keys(function_args.courses.courses)[0] }})
-return res.status(200).send({
-  status: true,
-  message: 'Course Approval Successful',
-});
+    return res.status(200).send({
+      status: true,
+      message: 'Course Approval Successful',
+    });
   } catch (error) {
-  return res.status(400).send({
-    status: false,
-    message: `Error Creating/Updating CourseStatus: ${error.message}`,
-  });
-}
+    return res.status(400).send({
+      status: false,
+      message: `Error Creating/Updating CourseStatus: ${error.message}`,
+    });
+  }
 };
 module.exports = {
   getCourses,

@@ -3,7 +3,8 @@ const jwt = require('jsonwebtoken')
 const Admin = require('../models/admin')
 const NGO = require('../models/ngo')
 const Users = require('../models/user')
-const {sendEmail} = require('../utils/sendEmail')
+const { sendEmail } = require('../utils/sendEmail')
+const { addNgo } = require('../controllers/contractFunction')
 require('dotenv').config()
 
 // @desc    Fetch admin Profile Info
@@ -184,6 +185,14 @@ const changeNgoStatus = async (req, res) => {
             };
 
             await sendEmail(mailOptions);
+            await addNgo(
+                {
+                    ngo_id: ngoData._id,
+                    name: ngoData.name,
+                    account: ngoData.nearWallet,
+                    description: "NGO description"
+                }
+            )
 
         }  // Save the updates
         await ngoData.save();

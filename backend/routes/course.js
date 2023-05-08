@@ -6,6 +6,7 @@ const { ngoAuth } = require('../middleware/ngoAuth')
 
 router.get('/', getCourses)//done
 router.get('/search', searchCourses) //done
+// router.get('/ngo', ngoCourse) //done
 router.get('/course-in-progress', userAuth, courseInProgress)//done
 router.get('/course-completed', userAuth, courseCompleted) //done
 router.get('/course-uploaded', userAuth, courseUploaded) //done

@@ -34,6 +34,27 @@ async function addCourseToContract(course) {
     }
 }
 
+async function addNgo(ngo) {
+    try {
+        const near = await connect(config);
+        const account = await near.account(ACCOUNT_ID);
+        const result = await account.signAndSendTransaction(
+            {
+                receiverId: ACCOUNT_ID,
+                actions: [
+                    transactions.functionCall(
+                        "add_ngo",
+                        Buffer.from(JSON.stringify(ngo)),
+                        10000000000000
+                    ),
+                ],
+            }
+        )
+        return result
+    } catch (error) {
+        return { error: error.message }
+    }
+}
 module.exports = {
-    addCourseToContract
+    addCourseToContract, addNgo
 };
