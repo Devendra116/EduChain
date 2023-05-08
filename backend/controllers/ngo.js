@@ -4,7 +4,7 @@ const UserModel = require("../models/user")
 const jwt = require('jsonwebtoken')
 const v4 = require("uuid").v4
 const bcrypt = require('bcryptjs')
-const {sendEmail} = require('../utils/sendEmail')
+const { sendEmail } = require('../utils/sendEmail')
 const crypto = require('crypto')
 
 // @desc    Register a new NGO
@@ -80,7 +80,7 @@ const verifyNgo = async (req, res) => {
 const getNgoDetail = async (req, res) => {
     try {
         const ngo = await NgoModel.findById(req.ngoId)
-        res.status(200).send({ status: true, ngo});
+        res.status(200).send({ status: true, ngo });
     } catch (error) {
         res.status(400).send({ status: false, message: `Error getting NGO detail ${error}` });
     }
@@ -153,7 +153,7 @@ const registerNgoUser = async (req, res) => {
             ngo: ngo.name,
             verificationToken: crypto.randomBytes(64).toString('hex'),
         });
-        
+
 
         // Hash the password
         const salt = await bcrypt.genSalt(10);
@@ -197,4 +197,32 @@ const getNgoUsers = async (req, res) => {
     }
 }
 
-module.exports = { getNgoDetail, getNgoDetails, generateToken, registerNgo, registerNgoUser, getNgoUsers, verifyNgo }
+// @desc    Update a existing NGO
+// @route   POST /user/update
+// @access  Private
+const updateNgo = async (req, res) => {
+    const { email, name, phone, location, nearWallet } = req.body
+    // const { email, nearWallet, password, firstName, lastName, organization, ngo, areaOfInterests, qualification, profileImg, userBio } = req.body;
+    try {
+        // Find the user
+        const { ngoId } = req;
+        const ngoData = await NgoModel.findById(ngoId);
+        if (!ngoData) return res.status(404).send({ status: false, message: 'Ngo not found' });
+
+        // Update the user information
+        if (email) ngoData.email = email;
+        if (nearWallet) ngoData.nearWallet = nearWallet;
+        if (name) ngoData.name = name;
+        if (phone) ngoData.phone = phone;
+        if (location) ngoData.location = location;
+
+    
+        await ngoData.save();
+
+        return res.status(200).send({ status: true, message: 'Ngo Updated Successfully' });
+    } catch (error) {
+        return res.status(400).send({ status: false, message: `Error Updating Ngo: ${error.message}` });
+    }
+};
+
+module.exports = { getNgoDetail, getNgoDetails,updateNgo, generateToken, registerNgo, registerNgoUser, getNgoUsers, verifyNgo }
