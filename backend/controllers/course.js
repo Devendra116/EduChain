@@ -33,7 +33,7 @@ function calculateModuleCost(courseFee, noOfModules) {
 // @access  Public
 const getCourses = async (req, res) => {
   try {
-    const courses = await Course.find().populate('instructorId');
+    const courses = await Course.find({courseCompleted:true}).populate('instructorId');
 
     const courseList = courses.map((course) => ({
       _id: course._id,
